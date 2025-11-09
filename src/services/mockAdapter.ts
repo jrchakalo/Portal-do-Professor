@@ -11,7 +11,10 @@ import type {
   AuthSession,
   ClassRoom,
   CreateClassInput,
+  EvaluationConfig,
+  UpcomingEvaluation,
   UpdateClassInput,
+  UpdateEvaluationConfigInput,
 } from '../types';
 import type { CreateStudentInput, Student, UpdateStudentInput } from '../types/student';
 import { mockServer } from './mockServer';
@@ -392,6 +395,109 @@ const registerClassRoutes = (): void => {
   );
 };
 
+const registerEvaluationRoutes = (): void => {
+  const validateCriteria = (
+    config: InternalAxiosRequestConfig,
+    criteria: UpdateEvaluationConfigInput['criteria'],
+  ): UpdateEvaluationConfigInput['criteria'] => {
+    if (!Array.isArray(criteria) || criteria.length === 0) {
+      throw createError(config, 400, { message: 'Informe ao menos um critério de avaliação.' });
+    }
+
+    const normalized = criteria.map((criterion, index) => {
+      const name = criterion?.name?.trim();
+      const weight = typeof criterion?.weight === 'number' ? criterion.weight : Number(criterion?.weight);
+
+      if (!name) {
+        throw createError(config, 400, { message: `Nome do critério #${index + 1} é obrigatório.` });
+      }
+
+      if (!Number.isFinite(weight) || weight <= 0) {
+        throw createError(config, 400, {
+          message: `Peso do critério "${name}" deve ser um número positivo.`,
+        });
+      }
+
+      return {
+        id: criterion?.id,
+        name,
+        weight,
+      };
+    });
+
+    const totalWeight = normalized.reduce((sum, criterion) => sum + criterion.weight, 0);
+    if (Math.round(totalWeight) !== 100) {
+      throw createError(config, 400, {
+        message: 'A soma dos pesos deve totalizar 100%.',
+      });
+    }
+
+    const seen = new Set<string>();
+    normalized.forEach((criterion) => {
+      const key = criterion.name.toLowerCase();
+      if (seen.has(key)) {
+        throw createError(config, 400, {
+          message: `O critério "${criterion.name}" está duplicado.`,
+        });
+      }
+      seen.add(key);
+    });
+
+    return normalized;
+  };
+
+  registerRoute(
+    'get',
+    '/evaluations/configs',
+    async (config) => {
+      const configs = await mockServer.listEvaluationConfigs();
+      return createResponse<EvaluationConfig[]>(config, configs, 200);
+    },
+    true,
+  );
+
+  registerRoute(
+    'get',
+    '/evaluations/configs/:classId',
+    async (config, params) => {
+      const configRecord = await mockServer.getEvaluationConfig(params.classId);
+      if (!configRecord) {
+        return createResponse<EvaluationConfig>(config, {
+          classId: params.classId,
+          criteria: [],
+          updatedAt: new Date(0).toISOString(),
+        }, 200);
+      }
+      return createResponse<EvaluationConfig>(config, configRecord, 200);
+    },
+    true,
+  );
+
+  registerRoute(
+    'put',
+    '/evaluations/configs/:classId',
+    async (config, params) => {
+      const payload = parseJsonData<UpdateEvaluationConfigInput>(config);
+      const normalizedCriteria = validateCriteria(config, payload.criteria);
+      const updated = await mockServer.updateEvaluationConfig(params.classId, {
+        criteria: normalizedCriteria,
+      });
+      return createResponse<EvaluationConfig>(config, updated, 200);
+    },
+    true,
+  );
+
+  registerRoute(
+    'get',
+    '/evaluations/upcoming',
+    async (config) => {
+      const upcoming = await mockServer.listUpcomingEvaluations();
+      return createResponse<UpcomingEvaluation[]>(config, upcoming, 200);
+    },
+    true,
+  );
+};
+
 const ensureRoutesRegistered = (() => {
   let initialized = false;
 
@@ -402,6 +508,7 @@ const ensureRoutesRegistered = (() => {
     registerAuthRoutes();
     registerStudentRoutes();
     registerClassRoutes();
+    registerEvaluationRoutes();
     initialized = true;
   };
 })();

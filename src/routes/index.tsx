@@ -20,6 +20,7 @@ export const AppRoutes = (): ReactElement => {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/alunos" element={<StudentsPage />} />
           <Route path="/turmas" element={<ClassesPage />} />
+          <Route path="/avaliacoes" element={<EvaluationsPage />} />
           <Route path="/turmas/:id/avaliacoes" element={<EvaluationsPage />} />
         </Route>
       </Route>

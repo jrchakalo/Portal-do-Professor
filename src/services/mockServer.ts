@@ -4,8 +4,10 @@ import type {
 	ClassRoom,
 	CreateClassInput,
 	EvaluationConfig,
+	EvaluationCriterionInput,
 	UpcomingEvaluation,
 	UpdateClassInput,
+	UpdateEvaluationConfigInput,
 	User,
 } from '../types';
 import type { CreateStudentInput, Student, UpdateStudentInput } from '../types/student';
@@ -43,6 +45,11 @@ const cloneUser = (user: InternalUser): User => ({
 const cloneClassRoom = (classRoom: ClassRoom): ClassRoom => ({ ...classRoom, studentIds: [...classRoom.studentIds] });
 
 const cloneStudent = (student: Student): Student => ({ ...student });
+const cloneEvaluationConfig = (config: EvaluationConfig): EvaluationConfig => ({
+	classId: config.classId,
+	updatedAt: config.updatedAt,
+	criteria: config.criteria.map((criterion) => ({ ...criterion })),
+});
 
 const seedUsers: InternalUser[] = [
 	{
@@ -278,7 +285,7 @@ export const mockServer = {
 			users: database.users.map(cloneUser),
 			classes: database.classes.map(cloneClassRoom),
 			students: database.students.map(cloneStudent),
-			evaluationConfigs: [...database.evaluationConfigs],
+			evaluationConfigs: database.evaluationConfigs.map(cloneEvaluationConfig),
 			upcomingEvaluations: [...database.upcomingEvaluations],
 		};
 	},
@@ -291,6 +298,92 @@ export const mockServer = {
 	async listClasses(): Promise<ClassRoom[]> {
 		await simulateNetworkDelay();
 		return database.classes.map(cloneClassRoom);
+	},
+
+	async listEvaluationConfigs(): Promise<EvaluationConfig[]> {
+		await simulateNetworkDelay();
+		return database.evaluationConfigs.map(cloneEvaluationConfig);
+	},
+
+	async getEvaluationConfig(classId: string): Promise<EvaluationConfig | null> {
+		await simulateNetworkDelay();
+		const existing = database.evaluationConfigs.find((config) => config.classId === classId);
+		return existing ? cloneEvaluationConfig(existing) : null;
+	},
+
+	async updateEvaluationConfig(
+		classId: string,
+		input: UpdateEvaluationConfigInput,
+	): Promise<EvaluationConfig> {
+		await simulateNetworkDelay();
+
+		const classRoom = database.classes.find((candidate) => candidate.id === classId);
+		if (!classRoom) {
+			throw new Error('CLASS_NOT_FOUND');
+		}
+
+		if (!Array.isArray(input.criteria) || input.criteria.length === 0) {
+			throw new Error('INVALID_CRITERIA');
+		}
+
+		const normalizedCriteria = input.criteria.map((criterion) => {
+			const name = criterion.name?.trim();
+			const weight = Number(criterion.weight);
+			if (!name) {
+				throw new Error('CRITERION_NAME_REQUIRED');
+			}
+			if (!Number.isFinite(weight) || weight <= 0) {
+				throw new Error('CRITERION_WEIGHT_INVALID');
+			}
+			return { ...criterion, name, weight } satisfies EvaluationCriterionInput;
+		});
+
+		const totalWeight = normalizedCriteria.reduce((sum, criterion) => sum + criterion.weight, 0);
+		if (Math.round(totalWeight) !== 100) {
+			throw new Error('CRITERIA_WEIGHT_MISMATCH');
+		}
+
+		const seenNames = new Set<string>();
+		normalizedCriteria.forEach((criterion) => {
+			const lower = criterion.name.toLowerCase();
+			if (seenNames.has(lower)) {
+				throw new Error('CRITERION_NAME_DUPLICATED');
+			}
+			seenNames.add(lower);
+		});
+
+		const now = nowIso();
+		const existing = database.evaluationConfigs.find((config) => config.classId === classId);
+		const idMap = new Map(existing?.criteria.map((criterion) => [criterion.id, criterion] as const) ?? []);
+
+		const criteriaWithIds = normalizedCriteria.map((criterion) => {
+			const base = criterion.id ? idMap.get(criterion.id) : undefined;
+			return {
+				id: base?.id ?? generateId('criterion'),
+				name: criterion.name,
+				weight: criterion.weight,
+			};
+		});
+
+		const config: EvaluationConfig = {
+			classId,
+			updatedAt: now,
+			criteria: criteriaWithIds,
+		};
+
+		if (existing) {
+			existing.criteria = config.criteria;
+			existing.updatedAt = now;
+		} else {
+			database.evaluationConfigs.push({ ...config });
+		}
+
+		return cloneEvaluationConfig(config);
+	},
+
+	async listUpcomingEvaluations(): Promise<UpcomingEvaluation[]> {
+		await simulateNetworkDelay();
+		return database.upcomingEvaluations.map((evaluation) => ({ ...evaluation }));
 	},
 
 	async createClass(input: CreateClassInput): Promise<ClassRoom> {

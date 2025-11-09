@@ -19,7 +19,8 @@ import {
 } from '@chakra-ui/react';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useCallback, useMemo, useState } from 'react';
-import { FiEdit2, FiPlus, FiRefreshCw, FiTrash } from 'react-icons/fi';
+import { FiCheckSquare, FiEdit2, FiPlus, FiRefreshCw, FiTrash } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 
 import { ClassFormDialog } from '../components/classes/ClassFormDialog';
 import { DeleteClassDialog } from '../components/classes/DeleteClassDialog';
@@ -36,6 +37,7 @@ const formatter = new Intl.DateTimeFormat('pt-BR', {
 });
 
 const ClassesPage = (): ReactElement => {
+  const navigate = useNavigate();
   const {
     classes,
     summary,
@@ -120,6 +122,14 @@ const ClassesPage = (): ReactElement => {
       setClassToDelete(id);
     },
     [resetError],
+  );
+
+  const handleOpenEvaluations = useCallback(
+    (id: string): void => {
+      resetError();
+      navigate(`/turmas/${id}/avaliacoes`);
+    },
+    [navigate, resetError],
   );
 
   const handleCloseDelete = useCallback((): void => {
@@ -241,6 +251,14 @@ const ClassesPage = (): ReactElement => {
           </TableCell>
           <TableCell textAlign="right">
             <HStack gap={2} justify="flex-end">
+              <IconButton
+                aria-label="Configurar avaliações"
+                size="sm"
+                variant="ghost"
+                onClick={() => handleOpenEvaluations(classRoom.id)}
+              >
+                <FiCheckSquare />
+              </IconButton>
               <IconButton aria-label="Editar turma" size="sm" variant="ghost" onClick={() => handleOpenEdit(classRoom.id)}>
                 <FiEdit2 />
               </IconButton>
@@ -258,7 +276,7 @@ const ClassesPage = (): ReactElement => {
         </TableRow>
       );
     });
-  }, [filteredClasses, handleOpenDelete, handleOpenEdit, isLoading, loadingRows]);
+  }, [filteredClasses, handleOpenDelete, handleOpenEdit, handleOpenEvaluations, isLoading, loadingRows]);
 
   const defaultFormValues: ClassFormValues | undefined = useMemo(() => {
     if (!editedClass) {

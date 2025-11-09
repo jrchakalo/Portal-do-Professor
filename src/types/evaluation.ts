@@ -16,3 +16,13 @@ export interface UpcomingEvaluation {
   title: string;
   scheduledAt: string;
 }
+
+export interface EvaluationCriterionInput {
+  id?: string;
+  name: string;
+  weight: number;
+}
+
+export interface UpdateEvaluationConfigInput {
+  criteria: EvaluationCriterionInput[];
+}
