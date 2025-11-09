@@ -10,6 +10,7 @@ import {
   Skeleton,
   Stack,
   Text,
+  useToast,
 } from '@chakra-ui/react';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -39,6 +40,7 @@ const EvaluationsPage = (): ReactElement => {
   const { id: classIdParam } = useParams<{ id?: string }>();
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     if (classes.length === 0) {
@@ -135,13 +137,25 @@ const EvaluationsPage = (): ReactElement => {
       setIsSaving(true);
       try {
         await updateConfig(selectedClassId, { criteria });
+        toast({
+          title: 'Critérios atualizados com sucesso.',
+          status: 'success',
+          duration: 4000,
+          isClosable: true,
+        });
       } catch {
-        // erro exibido via alerta
+        toast({
+          title: 'Não foi possível atualizar os critérios.',
+          description: 'Verifique os dados e tente novamente.',
+          status: 'error',
+          duration: 4000,
+          isClosable: true,
+        });
       } finally {
         setIsSaving(false);
       }
     },
-    [selectedClassId, updateConfig],
+    [selectedClassId, toast, updateConfig],
   );
 
   const isClassListEmpty = !isLoading && classes.length === 0;
