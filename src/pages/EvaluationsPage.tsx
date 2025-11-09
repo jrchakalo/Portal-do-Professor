@@ -42,6 +42,20 @@ const EvaluationsPage = (): ReactElement => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!successMessage) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setSuccessMessage(null);
+    }, 4000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [successMessage]);
+
+  useEffect(() => {
     if (classes.length === 0) {
       if (selectedClassId !== null) {
         setSelectedClassId(null);
