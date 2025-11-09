@@ -6,7 +6,13 @@ import type {
   InternalAxiosRequestConfig,
 } from 'axios';
 
-import type { AuthCredentials, AuthSession, ClassRoom } from '../types';
+import type {
+  AuthCredentials,
+  AuthSession,
+  ClassRoom,
+  CreateClassInput,
+  UpdateClassInput,
+} from '../types';
 import type { CreateStudentInput, Student, UpdateStudentInput } from '../types/student';
 import { mockServer } from './mockServer';
 
@@ -298,12 +304,89 @@ const registerStudentRoutes = (): void => {
 };
 
 const registerClassRoutes = (): void => {
+  const normalizeCapacity = (config: InternalAxiosRequestConfig, value: unknown): number => {
+    const capacity = typeof value === 'number' ? value : Number(value);
+    if (!Number.isFinite(capacity) || Number.isNaN(capacity)) {
+      throw createError(config, 400, { message: 'Capacidade inválida.' });
+    }
+
+    const normalized = Math.floor(capacity);
+    if (normalized < 1) {
+      throw createError(config, 400, { message: 'Capacidade deve ser pelo menos 1.' });
+    }
+
+    return normalized;
+  };
+
+  const validateClassPayload = (
+    config: InternalAxiosRequestConfig,
+    payload: Partial<CreateClassInput>,
+  ): CreateClassInput => {
+    const name = payload.name?.trim();
+    if (!name) {
+      throw createError(config, 400, { message: 'Nome da turma é obrigatório.' });
+    }
+
+    const capacity = normalizeCapacity(config, payload.capacity);
+
+    return {
+      name,
+      capacity,
+    } satisfies CreateClassInput;
+  };
+
   registerRoute(
     'get',
     '/classes',
     async (config) => {
       const classes = await mockServer.listClasses();
       return createResponse<ClassRoom[]>(config, classes, 200);
+    },
+    true,
+  );
+
+  registerRoute(
+    'post',
+    '/classes',
+    async (config) => {
+      const payload = validateClassPayload(config, parseJsonData(config));
+      const classRoom = await mockServer.createClass(payload);
+      return createResponse<ClassRoom>(config, classRoom, 201);
+    },
+    true,
+  );
+
+  registerRoute(
+    'put',
+    '/classes/:id',
+    async (config, params) => {
+      const payload = parseJsonData<UpdateClassInput>(config);
+      const updates: UpdateClassInput = {};
+
+      if (typeof payload.name !== 'undefined') {
+        const name = payload.name.trim();
+        if (!name) {
+          throw createError(config, 400, { message: 'Nome da turma não pode ser vazio.' });
+        }
+        updates.name = name;
+      }
+
+      if (typeof payload.capacity !== 'undefined') {
+        updates.capacity = normalizeCapacity(config, payload.capacity);
+      }
+
+      const classRoom = await mockServer.updateClass(params.id, updates);
+      return createResponse<ClassRoom>(config, classRoom, 200);
+    },
+    true,
+  );
+
+  registerRoute(
+    'delete',
+    '/classes/:id',
+    async (config, params) => {
+      await mockServer.deleteClass(params.id);
+      return createResponse(config, undefined, 204);
     },
     true,
   );

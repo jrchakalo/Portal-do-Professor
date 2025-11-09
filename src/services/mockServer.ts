@@ -2,8 +2,10 @@ import type {
 	AuthCredentials,
 	AuthSession,
 	ClassRoom,
+	CreateClassInput,
 	EvaluationConfig,
 	UpcomingEvaluation,
+	UpdateClassInput,
 	User,
 } from '../types';
 import type { CreateStudentInput, Student, UpdateStudentInput } from '../types/student';
@@ -289,6 +291,68 @@ export const mockServer = {
 	async listClasses(): Promise<ClassRoom[]> {
 		await simulateNetworkDelay();
 		return database.classes.map(cloneClassRoom);
+	},
+
+	async createClass(input: CreateClassInput): Promise<ClassRoom> {
+		await simulateNetworkDelay();
+
+		const now = nowIso();
+		const classRoom: ClassRoom = {
+			id: generateId('class'),
+			name: input.name,
+			capacity: input.capacity,
+			studentIds: [],
+			createdAt: now,
+			updatedAt: now,
+		};
+
+		database.classes.push(classRoom);
+		return cloneClassRoom(classRoom);
+	},
+
+	async updateClass(id: string, changes: UpdateClassInput): Promise<ClassRoom> {
+		await simulateNetworkDelay();
+
+		const classRoom = database.classes.find((candidate) => candidate.id === id);
+		if (!classRoom) {
+			throw new Error('CLASS_NOT_FOUND');
+		}
+
+		if (typeof changes.name === 'string') {
+			const trimmed = changes.name.trim();
+			if (trimmed.length > 0) {
+				classRoom.name = trimmed;
+			}
+		}
+
+		if (typeof changes.capacity === 'number') {
+			if (changes.capacity < classRoom.studentIds.length) {
+				throw new Error('CLASS_CAPACITY_TOO_LOW');
+			}
+			classRoom.capacity = changes.capacity;
+		}
+
+		classRoom.updatedAt = nowIso();
+		return cloneClassRoom(classRoom);
+	},
+
+	async deleteClass(id: string): Promise<void> {
+		await simulateNetworkDelay();
+
+		const index = database.classes.findIndex((candidate) => candidate.id === id);
+		if (index === -1) {
+			throw new Error('CLASS_NOT_FOUND');
+		}
+
+		database.classes.splice(index, 1);
+		const now = nowIso();
+
+		database.students.forEach((student) => {
+			if (student.classId === id) {
+				student.classId = null;
+				student.updatedAt = now;
+			}
+		});
 	},
 
 	async createStudent(input: CreateStudentInput): Promise<Student> {
