@@ -43,6 +43,20 @@ export interface EvaluationConfigSummary {
   updatedAt: Date;
 }
 
+export interface StudentStatusSummary {
+  active: number;
+  inactive: number;
+  total: number;
+}
+
+export interface CapacityAlert {
+  id: string;
+  name: string;
+  occupancyPercent: number;
+  capacity: number;
+  totalStudents: number;
+}
+
 interface DashboardOverviewState {
   metrics: OverviewMetrics;
   evaluations: DashboardEvaluation[];
@@ -50,6 +64,8 @@ interface DashboardOverviewState {
   nextEvaluation: DashboardEvaluation | null;
   pendingEvaluations: PendingEvaluationReminder[];
   evaluationConfigs: EvaluationConfigSummary[];
+  studentStatus: StudentStatusSummary;
+  capacityAlerts: CapacityAlert[];
 }
 
 const createInitialMetrics = (): OverviewMetrics => ({
@@ -65,6 +81,8 @@ const createInitialState = (): DashboardOverviewState => ({
   nextEvaluation: null,
   pendingEvaluations: [],
   evaluationConfigs: [],
+  studentStatus: { active: 0, inactive: 0, total: 0 },
+  capacityAlerts: [],
 });
 
 type MockSnapshot = ReturnType<typeof mockServer.snapshot>;
@@ -160,6 +178,38 @@ const buildEvaluationConfigSummaries = (
     .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 };
 
+const buildStudentStatusSummary = (students: Student[]): StudentStatusSummary => {
+  const summary = students.reduce(
+    (acc, student) => {
+      if (student.status === 'active') {
+        acc.active += 1;
+      } else {
+        acc.inactive += 1;
+      }
+      return acc;
+    },
+    { active: 0, inactive: 0 },
+  );
+
+  return {
+    ...summary,
+    total: summary.active + summary.inactive,
+  } satisfies StudentStatusSummary;
+};
+
+const buildCapacityAlerts = (summaries: ClassSummary[]): CapacityAlert[] => {
+  return summaries
+    .filter((summary) => summary.capacity > 0 && summary.occupancyPercent >= 80)
+    .sort((a, b) => b.occupancyPercent - a.occupancyPercent)
+    .map((summary) => ({
+      id: summary.id,
+      name: summary.name,
+      occupancyPercent: summary.occupancyPercent,
+      capacity: summary.capacity,
+      totalStudents: summary.totalStudents,
+    } satisfies CapacityAlert));
+};
+
 export const useDashboardOverview = (): DashboardOverviewState & { isLoading: boolean } => {
   const [snapshot, setSnapshot] = useState<MockSnapshot | null>(null);
 
@@ -176,9 +226,11 @@ export const useDashboardOverview = (): DashboardOverviewState & { isLoading: bo
     const classesById = buildClassDictionary(snapshot.classes);
     const studentsByClass = buildStudentDictionary(snapshot.students);
     const evaluations = buildEvaluations(snapshot.upcomingEvaluations, classesById);
-    const classSummaries = buildClassSummaries(snapshot.classes, studentsByClass);
+  const classSummaries = buildClassSummaries(snapshot.classes, studentsByClass);
   const evaluationConfigs = buildEvaluationConfigSummaries(snapshot.evaluationConfigs, classesById);
-    const activeStudentsCount = snapshot.students.filter((student) => student.status === 'active').length;
+  const studentStatus = buildStudentStatusSummary(snapshot.students);
+  const capacityAlerts = buildCapacityAlerts(classSummaries);
+  const activeStudentsCount = studentStatus.active;
     const classesWithUpcomingEvaluation = new Set(evaluations.map((evaluation) => evaluation.classId));
     const pendingEvaluations = snapshot.classes
       .filter((classRoom) => !classesWithUpcomingEvaluation.has(classRoom.id))
@@ -205,6 +257,8 @@ export const useDashboardOverview = (): DashboardOverviewState & { isLoading: bo
       nextEvaluation: evaluations[0] ?? null,
       pendingEvaluations,
       evaluationConfigs,
+      studentStatus,
+      capacityAlerts,
     } satisfies DashboardOverviewState;
   }, [snapshot]);
 
