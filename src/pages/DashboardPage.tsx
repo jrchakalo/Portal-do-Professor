@@ -8,65 +8,23 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
-import { useEffect, useMemo, useState, type ReactElement } from 'react';
+import { useMemo, type ReactElement } from 'react';
 
-import type { ClassRoom, Student, UpcomingEvaluation } from '../types';
-import { mockServer } from '../services/mockServer';
-
-interface OverviewMetrics {
-  students: number;
-  classes: number;
-  activeStudents: number;
-}
+import { useDashboardOverview } from '../hooks/useDashboardOverview';
+import { formatScheduledDate } from '../utils/date';
 
 const DashboardPage = (): ReactElement => {
-  const [metrics, setMetrics] = useState<OverviewMetrics>({
-    students: 0,
-    classes: 0,
-    activeStudents: 0,
-  });
-  const [evaluations, setEvaluations] = useState<UpcomingEvaluation[]>([]);
-  const [classrooms, setClassrooms] = useState<ClassRoom[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
-
-  useEffect(() => {
-    const snapshot = mockServer.snapshot();
-    const activeStudentsCount = snapshot.students.filter((student) => student.status === 'active').length;
-
-    setMetrics({
-      students: snapshot.students.length,
-      classes: snapshot.classes.length,
-      activeStudents: activeStudentsCount,
-    });
-
-    setEvaluations(snapshot.upcomingEvaluations);
-    setClassrooms(snapshot.classes);
-    setStudents(snapshot.students);
-  }, []);
-
-  const classroomsById = useMemo(() => {
-    return classrooms.reduce<Record<string, ClassRoom>>((acc, classRoom) => {
-      acc[classRoom.id] = classRoom;
-      return acc;
-    }, {});
-  }, [classrooms]);
-
-  const studentsByClass = useMemo(() => {
-    return students.reduce<Record<string, Student[]>>((acc, student) => {
-      if (!student.classId) {
-        return acc;
-      }
-
-      if (!acc[student.classId]) {
-        acc[student.classId] = [];
-      }
-
-      acc[student.classId].push(student);
-      return acc;
-    }, {});
-  }, [students]);
+  const { metrics, evaluations, classSummaries, nextEvaluation, isLoading } = useDashboardOverview();
 
   const evaluationItems = useMemo(() => {
+    if (isLoading) {
+      return [
+        <Text key="loading" color="fg.muted">
+          Carregando avaliações...
+        </Text>,
+      ];
+    }
+
     if (evaluations.length === 0) {
       return [
         <Text key="empty" color="fg.muted">
@@ -76,57 +34,27 @@ const DashboardPage = (): ReactElement => {
     }
 
     return evaluations.map((evaluation) => {
-      const classRoom = classroomsById[evaluation.classId];
-
       return (
         <Box key={evaluation.id} py={2} borderBottomWidth="1px" borderColor="gray.100" _last={{ borderBottomWidth: 0 }}>
           <Heading size="sm">{evaluation.title}</Heading>
           <Text fontSize="sm" color="fg.muted">
             Turma:{' '}
             <Text as="span" fontWeight="medium" color="fg.default">
-              {classRoom?.name ?? 'Turma desconhecida'}
+              {evaluation.className}
             </Text>
           </Text>
           <Text fontSize="sm" color="fg.muted">
             Agendado para:{' '}
             <Text as="span" fontWeight="medium" color="fg.default">
-              {new Date(evaluation.scheduledAt).toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
+              {formatScheduledDate(evaluation.scheduledAt)}
             </Text>
           </Text>
         </Box>
       );
     });
-  }, [classroomsById, evaluations]);
+  }, [evaluations, isLoading]);
 
-  const nextEvaluation = evaluations[0];
-
-  const classSummaries = useMemo(() => {
-    return classrooms.map((classRoom) => {
-      const classStudents = studentsByClass[classRoom.id] ?? [];
-      const activeCount = classStudents.filter((student) => student.status === 'active').length;
-      const inactiveCount = classStudents.length - activeCount;
-      const totalStudents = classStudents.length;
-      const occupancyPercent =
-        classRoom.capacity > 0
-          ? Math.min(100, Math.round((totalStudents / classRoom.capacity) * 100))
-          : 0;
-
-      return {
-        id: classRoom.id,
-        name: classRoom.name,
-        capacity: classRoom.capacity,
-        totalStudents,
-        activeCount,
-        inactiveCount,
-        occupancyPercent,
-      };
-    });
-  }, [classrooms, studentsByClass]);
+  const upcomingEvaluationDate = nextEvaluation ? formatScheduledDate(nextEvaluation.scheduledAt) : null;
 
   return (
     <Stack gap={6}>
@@ -177,12 +105,7 @@ const DashboardPage = (): ReactElement => {
             </Text>
             {nextEvaluation ? (
               <Text fontSize="sm" color="fg.muted">
-                {new Date(nextEvaluation.scheduledAt).toLocaleDateString('pt-BR', {
-                  day: '2-digit',
-                  month: 'short',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
+                {nextEvaluation.className} · {upcomingEvaluationDate}
               </Text>
             ) : null}
           </Card.Body>
@@ -202,7 +125,9 @@ const DashboardPage = (): ReactElement => {
             <Heading size="md">Capacidade das turmas</Heading>
           </Card.Header>
           <Card.Body>
-            {classSummaries.length === 0 ? (
+            {isLoading ? (
+              <Text color="fg.muted">Carregando dados...</Text>
+            ) : classSummaries.length === 0 ? (
               <Text color="fg.muted">Sem turmas cadastradas.</Text>
             ) : (
               <Stack gap={4}>
