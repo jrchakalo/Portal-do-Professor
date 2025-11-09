@@ -40,6 +40,7 @@ const EvaluationsPage = (): ReactElement => {
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [formResetKey, setFormResetKey] = useState(0);
 
   useEffect(() => {
     if (!successMessage) {
@@ -59,6 +60,7 @@ const EvaluationsPage = (): ReactElement => {
     if (classes.length === 0) {
       if (selectedClassId !== null) {
         setSelectedClassId(null);
+        setFormResetKey((key) => key + 1);
       }
       return;
     }
@@ -66,6 +68,7 @@ const EvaluationsPage = (): ReactElement => {
     if (classIdParam && classes.some((classRoom) => classRoom.id === classIdParam)) {
       if (selectedClassId !== classIdParam) {
         setSelectedClassId(classIdParam);
+        setFormResetKey((key) => key + 1);
       }
       return;
     }
@@ -73,6 +76,7 @@ const EvaluationsPage = (): ReactElement => {
     const selectedExists = selectedClassId ? classes.some((classRoom) => classRoom.id === selectedClassId) : false;
     if (!selectedExists) {
       setSelectedClassId(classes[0].id);
+      setFormResetKey((key) => key + 1);
     }
   }, [classIdParam, classes, selectedClassId]);
 
@@ -118,7 +122,12 @@ const EvaluationsPage = (): ReactElement => {
       const value = event.target.value;
       const nextClassId = value === '' ? null : value;
 
+      if (nextClassId === selectedClassId) {
+        return;
+      }
+
       setSelectedClassId(nextClassId);
+      setFormResetKey((key) => key + 1);
       resetError();
       setSuccessMessage(null);
 
@@ -130,7 +139,7 @@ const EvaluationsPage = (): ReactElement => {
         navigate('/avaliacoes', { replace: true });
       }
     },
-    [classIdParam, navigate, resetError],
+    [classIdParam, navigate, resetError, selectedClassId],
   );
 
   const handleRefresh = useCallback(async (): Promise<void> => {
@@ -161,6 +170,12 @@ const EvaluationsPage = (): ReactElement => {
     },
     [selectedClassId, updateConfig],
   );
+
+  const handleCancelEdit = useCallback((): void => {
+    setFormResetKey((key) => key + 1);
+    setSuccessMessage(null);
+    resetError();
+  }, [resetError]);
 
   const isClassListEmpty = !isLoading && classes.length === 0;
 
@@ -260,9 +275,13 @@ const EvaluationsPage = (): ReactElement => {
                 </Stack>
               ) : selectedClassId ? (
                 <EvaluationCriteriaForm
-                  defaultValues={selectedCriteria}
+                  key={`${selectedClassId}-${formResetKey}`}
+                  defaultValues={selectedCriteria.map((criterion) => ({ ...criterion }))}
                   onSubmit={handleSubmitCriteria}
                   isSubmitting={isMutating || isSaving}
+                  onCancel={handleCancelEdit}
+                  cancelLabel="Descartar alterações"
+                  submitLabel="Salvar critérios"
                 />
               ) : (
                 <Text color="fg.muted">Selecione uma turma para configurar os critérios.</Text>
