@@ -3,6 +3,7 @@ import axios, { AxiosError } from 'axios';
 import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
 import type { AuthSession } from '../types';
+import { enableMockAdapter } from './mockAdapter';
 
 const MOCK_API_BASE_URL = '/api';
 
@@ -56,6 +57,8 @@ const createHttpClient = (): AxiosInstance => {
     baseURL: MOCK_API_BASE_URL,
     timeout: 10_000,
   });
+
+  enableMockAdapter(instance);
 
   instance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     const tokens = readTokens();
