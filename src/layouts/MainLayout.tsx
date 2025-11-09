@@ -1,8 +1,16 @@
 import type { ReactElement, ReactNode } from 'react';
-import { Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
-import { Box, Flex, HStack, IconButton, Text, VStack, chakra } from '@chakra-ui/react';
-import { FiLogOut, FiMenu } from 'react-icons/fi';
+import { Box, Flex, HStack, IconButton, Stack, Text, VStack, chakra } from '@chakra-ui/react';
+import {
+  FiCheckSquare,
+  FiGrid,
+  FiLayers,
+  FiLogOut,
+  FiMenu,
+  FiUsers,
+} from 'react-icons/fi';
+import type { IconType } from 'react-icons';
 
 import { useAuth } from '../hooks/useAuth';
 
@@ -12,7 +20,22 @@ interface MainLayoutProps {
   children?: ReactNode;
 }
 
-const Sidebar = (): ReactElement => {
+interface NavItem {
+  label: string;
+  to: string;
+  icon: IconType;
+}
+
+const navItems: NavItem[] = [
+  { label: 'Dashboard', to: '/dashboard', icon: FiGrid },
+  { label: 'Alunos', to: '/alunos', icon: FiUsers },
+  { label: 'Turmas', to: '/turmas', icon: FiLayers },
+  { label: 'Avaliações', to: '/turmas', icon: FiCheckSquare },
+];
+
+const Sidebar = ({ onNavigate }: { onNavigate?: () => void }): ReactElement => {
+  const location = useLocation();
+
   return (
     <VStack
       as="nav"
@@ -29,7 +52,46 @@ const Sidebar = (): ReactElement => {
       <chakra.h1 fontSize="xl" fontWeight="bold">
         Portal do Professor
       </chakra.h1>
-      {/* Links de navegação serão adicionados posteriormente */}
+      <Stack as="ul" listStyleType="none" m={0} p={0} gap={1}>
+        {navItems.map((item) => {
+          const isActive =
+            location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
+
+          return (
+            <chakra.li key={item.to}>
+              <Box
+                as={NavLink}
+                to={item.to}
+                display="flex"
+                alignItems="center"
+                gap={3}
+                px={3}
+                py={2}
+                borderRadius="lg"
+                fontWeight="medium"
+                color={isActive ? 'white' : 'fg.muted'}
+                bg={isActive ? 'brand.500' : 'transparent'}
+                _hover={
+                  isActive
+                    ? { bg: 'brand.600', color: 'white' }
+                    : { bg: 'gray.100', color: 'fg.default' }
+                }
+                _dark={
+                  isActive
+                    ? { bg: 'brand.400', color: 'gray.900' }
+                    : { color: 'fg.muted', _hover: { bg: 'gray.800', color: 'fg.default' } }
+                }
+                onClick={onNavigate}
+              >
+                <chakra.span fontSize="lg">
+                  <item.icon />
+                </chakra.span>
+                <Text>{item.label}</Text>
+              </Box>
+            </chakra.li>
+          );
+        })}
+      </Stack>
     </VStack>
   );
 };
