@@ -40,7 +40,7 @@ const navItems: NavItem[] = [
   { label: 'Dashboard', to: '/dashboard', icon: FiGrid },
   { label: 'Alunos', to: '/alunos', icon: FiUsers },
   { label: 'Turmas', to: '/turmas', icon: FiLayers },
-  { label: 'Avaliações', to: '/turmas', icon: FiCheckSquare },
+  { label: 'Avaliações', to: '/avaliacoes', icon: FiCheckSquare },
 ];
 
 const Sidebar = ({ onNavigate }: { onNavigate?: () => void }): ReactElement => {
@@ -64,8 +64,12 @@ const Sidebar = ({ onNavigate }: { onNavigate?: () => void }): ReactElement => {
       </chakra.h1>
       <Stack as="ul" listStyleType="none" m={0} p={0} gap={1}>
         {navItems.map((item) => {
+          const isEvaluationsLink = item.to === '/avaliacoes';
+          const matchesNestedEvaluations = isEvaluationsLink && location.pathname.includes('/avaliacoes');
           const isActive =
-            location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
+            location.pathname === item.to ||
+            location.pathname.startsWith(`${item.to}/`) ||
+            matchesNestedEvaluations;
 
           return (
             <chakra.li key={item.to}>
