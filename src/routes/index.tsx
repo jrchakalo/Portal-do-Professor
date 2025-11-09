@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
+import { MainLayout } from '../layouts/MainLayout';
 import ClassesPage from '../pages/ClassesPage';
 import DashboardPage from '../pages/DashboardPage';
 import EvaluationsPage from '../pages/EvaluationsPage';
@@ -14,11 +15,13 @@ export const AppRoutes = (): ReactElement => {
       <Route path="/login" element={<LoginPage />} />
 
       <Route element={<PrivateRoute />}>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/alunos" element={<StudentsPage />} />
-        <Route path="/turmas" element={<ClassesPage />} />
-        <Route path="/turmas/:id/avaliacoes" element={<EvaluationsPage />} />
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/alunos" element={<StudentsPage />} />
+          <Route path="/turmas" element={<ClassesPage />} />
+          <Route path="/turmas/:id/avaliacoes" element={<EvaluationsPage />} />
+        </Route>
       </Route>
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
