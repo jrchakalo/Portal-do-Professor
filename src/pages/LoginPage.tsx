@@ -1,20 +1,5 @@
-import {
-  Alert,
-  AlertIcon,
-  Box,
-  Button,
-  Container,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Heading,
-  Input,
-  Stack,
-  Text,
-  chakra,
-  useToast,
-} from '@chakra-ui/react';
-import type { FormEvent, ReactElement } from 'react';
+import { Alert, Button, Container, Field, Heading, Input, Stack, Text, chakra } from '@chakra-ui/react';
+import type { ChangeEvent, FormEvent, ReactElement } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
@@ -35,7 +20,6 @@ const createInitialState = (): LoginFormState => ({
 const LoginPage = (): ReactElement => {
   const navigate = useNavigate();
   const location = useLocation();
-  const toast = useToast();
   const { login, isAuthenticated, isLoading, error, resetError } = useAuth();
   const [formState, setFormState] = useState<LoginFormState>(createInitialState);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,7 +40,7 @@ const LoginPage = (): ReactElement => {
 
   const handleChange = useCallback(
     (key: keyof LoginFormState) =>
-      (event: React.ChangeEvent<HTMLInputElement>): void => {
+      (event: ChangeEvent<HTMLInputElement>): void => {
         if (error) {
           resetError();
         }
@@ -78,27 +62,15 @@ const LoginPage = (): ReactElement => {
           email: formState.email,
           password: formState.password,
         });
-        toast({
-          title: 'Login realizado com sucesso!',
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
         setFormState(createInitialState());
         navigate(redirectPath, { replace: true });
       } catch {
-        toast({
-          title: 'Não foi possível autenticar',
-          description: 'Verifique suas credenciais e tente novamente.',
-          status: 'error',
-          duration: 4000,
-          isClosable: true,
-        });
+        // feedback visual é tratado pelo alerta exibido abaixo
       } finally {
         setIsSubmitting(false);
       }
     },
-    [formState.email, formState.password, isSubmitDisabled, login, toast, navigate, redirectPath],
+    [formState.email, formState.password, isSubmitDisabled, login, navigate, redirectPath],
   );
 
   if (isAuthenticated) {
@@ -113,8 +85,7 @@ const LoginPage = (): ReactElement => {
           <Text color="fg.muted">Acesse o painel para gerenciar suas turmas e avaliações.</Text>
         </Stack>
 
-        <Box
-          as="form"
+        <chakra.form
           onSubmit={handleSubmit}
           bg="white"
           _dark={{ bg: 'gray.800' }}
@@ -125,8 +96,8 @@ const LoginPage = (): ReactElement => {
         >
           <Stack gap={6}>
             <Stack gap={4}>
-              <FormControl isRequired isInvalid={isEmailInvalid}>
-                <FormLabel>E-mail</FormLabel>
+              <Field.Root required invalid={isEmailInvalid}>
+                <Field.Label>E-mail</Field.Label>
                 <Input
                   type="email"
                   value={formState.email}
@@ -135,11 +106,11 @@ const LoginPage = (): ReactElement => {
                   autoComplete="email"
                   size="lg"
                 />
-                <FormErrorMessage>Informe um e-mail válido.</FormErrorMessage>
-              </FormControl>
+                {isEmailInvalid ? <Field.ErrorText>Informe um e-mail válido.</Field.ErrorText> : null}
+              </Field.Root>
 
-              <FormControl isRequired isInvalid={isPasswordInvalid}>
-                <FormLabel>Senha</FormLabel>
+              <Field.Root required invalid={isPasswordInvalid}>
+                <Field.Label>Senha</Field.Label>
                 <Input
                   type="password"
                   value={formState.password}
@@ -148,28 +119,30 @@ const LoginPage = (): ReactElement => {
                   autoComplete="current-password"
                   size="lg"
                 />
-                <FormErrorMessage>A senha deve conter pelo menos 6 caracteres.</FormErrorMessage>
-              </FormControl>
+                {isPasswordInvalid ? (
+                  <Field.ErrorText>A senha deve conter pelo menos 6 caracteres.</Field.ErrorText>
+                ) : null}
+              </Field.Root>
             </Stack>
 
             {error ? (
-              <Alert status="error" borderRadius="md">
-                <AlertIcon />
-                {error.message}
-              </Alert>
+              <Alert.Root status="error" borderRadius="md">
+                <Alert.Indicator />
+                <Alert.Content>{error.message}</Alert.Content>
+              </Alert.Root>
             ) : null}
 
             <Button
               type="submit"
-              colorScheme="brand"
+              colorPalette="brand"
               size="lg"
-              isLoading={isSubmitting}
-              isDisabled={isSubmitDisabled}
+              loading={isSubmitting}
+              disabled={isSubmitDisabled}
             >
               Entrar
             </Button>
           </Stack>
-        </Box>
+  </chakra.form>
 
         <Text fontSize="sm" color="fg.muted">
           Dica: utilize <chakra.span fontWeight="semibold">professora@portal.com</chakra.span> com
