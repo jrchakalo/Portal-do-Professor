@@ -64,12 +64,17 @@ const Sidebar = ({ onNavigate }: { onNavigate?: () => void }): ReactElement => {
       </chakra.h1>
       <Stack as="ul" listStyleType="none" m={0} p={0} gap={1}>
         {navItems.map((item) => {
-          const isEvaluationsLink = item.to === '/avaliacoes';
-          const matchesNestedEvaluations = isEvaluationsLink && location.pathname.includes('/avaliacoes');
-          const isActive =
-            location.pathname === item.to ||
-            location.pathname.startsWith(`${item.to}/`) ||
-            matchesNestedEvaluations;
+          const pathname = location.pathname;
+          const isEvaluationsPath = pathname.includes('/avaliacoes');
+
+          let isActive = false;
+          if (item.to === '/avaliacoes') {
+            isActive = isEvaluationsPath;
+          } else if (item.to === '/turmas') {
+            isActive = pathname === '/turmas' || (pathname.startsWith('/turmas') && !isEvaluationsPath);
+          } else {
+            isActive = pathname === item.to || pathname.startsWith(`${item.to}/`);
+          }
 
           return (
             <chakra.li key={item.to}>
