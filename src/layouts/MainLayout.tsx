@@ -1,7 +1,17 @@
-import type { ReactElement, ReactNode } from 'react';
+import { useState, type ReactElement, type ReactNode } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
-import { Box, Flex, HStack, IconButton, Stack, Text, VStack, chakra } from '@chakra-ui/react';
+import {
+  Box,
+  Drawer,
+  Flex,
+  HStack,
+  IconButton,
+  Stack,
+  Text,
+  VStack,
+  chakra,
+} from '@chakra-ui/react';
 import {
   FiCheckSquare,
   FiGrid,
@@ -59,35 +69,34 @@ const Sidebar = ({ onNavigate }: { onNavigate?: () => void }): ReactElement => {
 
           return (
             <chakra.li key={item.to}>
-              <Box
-                as={NavLink}
-                to={item.to}
-                display="flex"
-                alignItems="center"
-                gap={3}
-                px={3}
-                py={2}
-                borderRadius="lg"
-                fontWeight="medium"
-                color={isActive ? 'white' : 'fg.muted'}
-                bg={isActive ? 'brand.500' : 'transparent'}
-                _hover={
-                  isActive
-                    ? { bg: 'brand.600', color: 'white' }
-                    : { bg: 'gray.100', color: 'fg.default' }
-                }
-                _dark={
-                  isActive
-                    ? { bg: 'brand.400', color: 'gray.900' }
-                    : { color: 'fg.muted', _hover: { bg: 'gray.800', color: 'fg.default' } }
-                }
-                onClick={onNavigate}
-              >
-                <chakra.span fontSize="lg">
-                  <item.icon />
-                </chakra.span>
-                <Text>{item.label}</Text>
-              </Box>
+              <NavLink to={item.to} onClick={onNavigate} style={{ textDecoration: 'none' }}>
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  gap={3}
+                  px={3}
+                  py={2}
+                  borderRadius="lg"
+                  fontWeight="medium"
+                  color={isActive ? 'white' : 'fg.muted'}
+                  bg={isActive ? 'brand.500' : 'transparent'}
+                  _hover={
+                    isActive
+                      ? { bg: 'brand.600', color: 'white' }
+                      : { bg: 'gray.100', color: 'fg.default' }
+                  }
+                  _dark={
+                    isActive
+                      ? { bg: 'brand.400', color: 'gray.900' }
+                      : { color: 'fg.muted', _hover: { bg: 'gray.800', color: 'fg.default' } }
+                  }
+                >
+                  <chakra.span fontSize="lg">
+                    <item.icon />
+                  </chakra.span>
+                  <Text>{item.label}</Text>
+                </Box>
+              </NavLink>
             </chakra.li>
           );
         })}
@@ -98,6 +107,15 @@ const Sidebar = ({ onNavigate }: { onNavigate?: () => void }): ReactElement => {
 
 export const MainLayout = ({ title, actions, children }: MainLayoutProps): ReactElement => {
   const { user, logout } = useAuth();
+  const [isMobileNavOpen, setMobileNavOpen] = useState(false);
+
+  const handleOpenMobileNav = (): void => {
+    setMobileNavOpen(true);
+  };
+
+  const handleMobileNavChange = ({ open }: { open: boolean }): void => {
+    setMobileNavOpen(open);
+  };
 
   return (
     <Flex minH="100vh">
@@ -122,6 +140,7 @@ export const MainLayout = ({ title, actions, children }: MainLayoutProps): React
               aria-label="Abrir menu"
               variant="ghost"
               display={{ base: 'inline-flex', lg: 'none' }}
+              onClick={handleOpenMobileNav}
             >
               <FiMenu />
             </IconButton>
@@ -155,6 +174,16 @@ export const MainLayout = ({ title, actions, children }: MainLayoutProps): React
           {children ?? <Outlet />}
         </Box>
       </Flex>
+
+      <Drawer.Root open={isMobileNavOpen} onOpenChange={handleMobileNavChange} placement="start">
+        <Drawer.Backdrop />
+        <Drawer.Positioner>
+          <Drawer.Content maxW="xs" p={0} bg="white" _dark={{ bg: 'gray.900' }}>
+            <Drawer.CloseTrigger position="absolute" top={2} right={2} />
+            <Sidebar onNavigate={() => setMobileNavOpen(false)} />
+          </Drawer.Content>
+        </Drawer.Positioner>
+      </Drawer.Root>
     </Flex>
   );
 };
