@@ -27,11 +27,19 @@ export interface ClassSummary {
   occupancyPercent: number;
 }
 
+export interface PendingEvaluationReminder {
+  id: string;
+  name: string;
+  studentCount: number;
+  lastUpdatedAt: Date;
+}
+
 interface DashboardOverviewState {
   metrics: OverviewMetrics;
   evaluations: DashboardEvaluation[];
   classSummaries: ClassSummary[];
   nextEvaluation: DashboardEvaluation | null;
+  pendingEvaluations: PendingEvaluationReminder[];
 }
 
 const createInitialMetrics = (): OverviewMetrics => ({
@@ -45,6 +53,7 @@ const createInitialState = (): DashboardOverviewState => ({
   evaluations: [],
   classSummaries: [],
   nextEvaluation: null,
+  pendingEvaluations: [],
 });
 
 type MockSnapshot = ReturnType<typeof mockServer.snapshot>;
@@ -137,6 +146,20 @@ export const useDashboardOverview = (): DashboardOverviewState & { isLoading: bo
     const evaluations = buildEvaluations(snapshot.upcomingEvaluations, classesById);
     const classSummaries = buildClassSummaries(snapshot.classes, studentsByClass);
     const activeStudentsCount = snapshot.students.filter((student) => student.status === 'active').length;
+    const classesWithUpcomingEvaluation = new Set(evaluations.map((evaluation) => evaluation.classId));
+    const pendingEvaluations = snapshot.classes
+      .filter((classRoom) => !classesWithUpcomingEvaluation.has(classRoom.id))
+      .map((classRoom) => {
+        const classStudents = studentsByClass[classRoom.id] ?? [];
+
+        return {
+          id: classRoom.id,
+          name: classRoom.name,
+          studentCount: classStudents.length,
+          lastUpdatedAt: new Date(classRoom.updatedAt),
+        } satisfies PendingEvaluationReminder;
+      })
+      .sort((a, b) => b.studentCount - a.studentCount);
 
     return {
       metrics: {
@@ -147,6 +170,7 @@ export const useDashboardOverview = (): DashboardOverviewState & { isLoading: bo
       evaluations,
       classSummaries,
       nextEvaluation: evaluations[0] ?? null,
+      pendingEvaluations,
     } satisfies DashboardOverviewState;
   }, [snapshot]);
 
