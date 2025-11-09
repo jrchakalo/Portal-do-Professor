@@ -2,6 +2,7 @@ import { Heading, SimpleGrid, Stack } from '@chakra-ui/react';
 import { useMemo, type ReactElement } from 'react';
 
 import { ClassCapacityCard } from '../components/dashboard/ClassCapacityCard';
+import { EvaluationConfigCard } from '../components/dashboard/EvaluationConfigCard';
 import { OverviewStatCard } from '../components/dashboard/OverviewStatCard';
 import { PendingEvaluationsCard } from '../components/dashboard/PendingEvaluationsCard';
 import { UpcomingEvaluationsCard } from '../components/dashboard/UpcomingEvaluationsCard';
@@ -15,6 +16,7 @@ const DashboardPage = (): ReactElement => {
     classSummaries,
     nextEvaluation,
     pendingEvaluations,
+    evaluationConfigs,
     isLoading,
   } = useDashboardOverview();
 
@@ -48,10 +50,11 @@ const DashboardPage = (): ReactElement => {
         />
       </SimpleGrid>
 
-      <SimpleGrid columns={{ base: 1, lg: 3 }} gap={4}>
+      <SimpleGrid columns={{ base: 1, lg: 2, xl: 3 }} gap={4}>
         <UpcomingEvaluationsCard evaluations={evaluations} isLoading={isLoading} />
         <ClassCapacityCard classes={classSummaries} isLoading={isLoading} />
         <PendingEvaluationsCard pendingClasses={pendingEvaluations} isLoading={isLoading} />
+        <EvaluationConfigCard configs={evaluationConfigs} isLoading={isLoading} />
       </SimpleGrid>
     </Stack>
   );

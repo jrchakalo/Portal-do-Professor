@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { mockServer } from '../services/mockServer';
-import type { ClassRoom, Student, UpcomingEvaluation } from '../types';
+import type { ClassRoom, EvaluationConfig, Student, UpcomingEvaluation } from '../types';
 
 export interface OverviewMetrics {
   students: number;
@@ -34,12 +34,22 @@ export interface PendingEvaluationReminder {
   lastUpdatedAt: Date;
 }
 
+export interface EvaluationConfigSummary {
+  id: string;
+  className: string;
+  criteriaCount: number;
+  totalWeight: number;
+  isWeightBalanced: boolean;
+  updatedAt: Date;
+}
+
 interface DashboardOverviewState {
   metrics: OverviewMetrics;
   evaluations: DashboardEvaluation[];
   classSummaries: ClassSummary[];
   nextEvaluation: DashboardEvaluation | null;
   pendingEvaluations: PendingEvaluationReminder[];
+  evaluationConfigs: EvaluationConfigSummary[];
 }
 
 const createInitialMetrics = (): OverviewMetrics => ({
@@ -54,6 +64,7 @@ const createInitialState = (): DashboardOverviewState => ({
   classSummaries: [],
   nextEvaluation: null,
   pendingEvaluations: [],
+  evaluationConfigs: [],
 });
 
 type MockSnapshot = ReturnType<typeof mockServer.snapshot>;
@@ -128,6 +139,27 @@ const buildClassSummaries = (
   });
 };
 
+const buildEvaluationConfigSummaries = (
+  evaluationConfigs: EvaluationConfig[],
+  classesById: ClassDictionary,
+): EvaluationConfigSummary[] => {
+  return evaluationConfigs
+    .map((config) => {
+      const classRoom = classesById[config.classId];
+      const totalWeight = config.criteria.reduce((total, criterion) => total + criterion.weight, 0);
+
+      return {
+        id: config.classId,
+        className: classRoom?.name ?? 'Turma desconhecida',
+        criteriaCount: config.criteria.length,
+        totalWeight,
+        isWeightBalanced: totalWeight === 100,
+        updatedAt: new Date(config.updatedAt),
+      } satisfies EvaluationConfigSummary;
+    })
+    .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+};
+
 export const useDashboardOverview = (): DashboardOverviewState & { isLoading: boolean } => {
   const [snapshot, setSnapshot] = useState<MockSnapshot | null>(null);
 
@@ -145,6 +177,7 @@ export const useDashboardOverview = (): DashboardOverviewState & { isLoading: bo
     const studentsByClass = buildStudentDictionary(snapshot.students);
     const evaluations = buildEvaluations(snapshot.upcomingEvaluations, classesById);
     const classSummaries = buildClassSummaries(snapshot.classes, studentsByClass);
+  const evaluationConfigs = buildEvaluationConfigSummaries(snapshot.evaluationConfigs, classesById);
     const activeStudentsCount = snapshot.students.filter((student) => student.status === 'active').length;
     const classesWithUpcomingEvaluation = new Set(evaluations.map((evaluation) => evaluation.classId));
     const pendingEvaluations = snapshot.classes
@@ -171,6 +204,7 @@ export const useDashboardOverview = (): DashboardOverviewState & { isLoading: bo
       classSummaries,
       nextEvaluation: evaluations[0] ?? null,
       pendingEvaluations,
+      evaluationConfigs,
     } satisfies DashboardOverviewState;
   }, [snapshot]);
 
