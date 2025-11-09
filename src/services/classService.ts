@@ -1,6 +1,6 @@
 import type { AxiosError } from 'axios';
 
-import type { ClassRoom } from '../types';
+import type { ClassRoom, CreateClassInput, UpdateClassInput } from '../types';
 import { httpClient } from './httpClient';
 
 export interface ClassServiceError {
@@ -27,6 +27,32 @@ export const classService = {
     try {
       const response = await httpClient.get<ClassRoom[]>('/classes');
       return response.data;
+    } catch (error) {
+      throw mapError(error);
+    }
+  },
+
+  async create(payload: CreateClassInput): Promise<ClassRoom> {
+    try {
+      const response = await httpClient.post<ClassRoom>('/classes', payload);
+      return response.data;
+    } catch (error) {
+      throw mapError(error);
+    }
+  },
+
+  async update(id: string, payload: UpdateClassInput): Promise<ClassRoom> {
+    try {
+      const response = await httpClient.put<ClassRoom>(`/classes/${id}`, payload);
+      return response.data;
+    } catch (error) {
+      throw mapError(error);
+    }
+  },
+
+  async remove(id: string): Promise<void> {
+    try {
+      await httpClient.delete(`/classes/${id}`);
     } catch (error) {
       throw mapError(error);
     }
