@@ -107,8 +107,8 @@ const LoginPage = (): ReactElement => {
 
   return (
     <Container maxW="lg" py={{ base: 12, md: 24 }}>
-      <Stack spacing={10} align="center">
-        <Stack spacing={3} textAlign="center">
+      <Stack gap={10} alignItems="center">
+        <Stack gap={3} textAlign="center">
           <Heading size="2xl">Portal do Professor</Heading>
           <Text color="fg.muted">Acesse o painel para gerenciar suas turmas e avaliações.</Text>
         </Stack>
@@ -123,8 +123,8 @@ const LoginPage = (): ReactElement => {
           w="full"
           p={{ base: 6, md: 10 }}
         >
-          <Stack spacing={6}>
-            <Stack spacing={4}>
+          <Stack gap={6}>
+            <Stack gap={4}>
               <FormControl isRequired isInvalid={isEmailInvalid}>
                 <FormLabel>E-mail</FormLabel>
                 <Input
