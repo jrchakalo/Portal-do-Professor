@@ -6,7 +6,7 @@ import type {
 	UpcomingEvaluation,
 	User,
 } from '../types';
-import type { Student } from '../types/student';
+import type { CreateStudentInput, Student, UpdateStudentInput } from '../types/student';
 import { generateId } from '../utils/id';
 import { simulateNetworkDelay } from '../utils/promise';
 
@@ -37,6 +37,10 @@ const cloneUser = (user: InternalUser): User => ({
 	email: user.email,
 	role: user.role,
 });
+
+const cloneClassRoom = (classRoom: ClassRoom): ClassRoom => ({ ...classRoom, studentIds: [...classRoom.studentIds] });
+
+const cloneStudent = (student: Student): Student => ({ ...student });
 
 const seedUsers: InternalUser[] = [
 	{
@@ -160,6 +164,39 @@ const createSessionRecord = (userId: string): SessionRecord => {
 	};
 };
 
+const findClassById = (classId: string | null): ClassRoom | undefined => {
+	if (!classId) {
+		return undefined;
+	}
+	return database.classes.find((classRoom) => classRoom.id === classId);
+};
+
+const attachStudentToClass = (classId: string | null, studentId: string): void => {
+	const classRoom = findClassById(classId);
+	if (!classRoom) {
+		return;
+	}
+
+	if (!classRoom.studentIds.includes(studentId)) {
+		classRoom.studentIds.push(studentId);
+	}
+
+	classRoom.updatedAt = nowIso();
+};
+
+const detachStudentFromClass = (classId: string | null, studentId: string): void => {
+	const classRoom = findClassById(classId);
+	if (!classRoom) {
+		return;
+	}
+
+	const index = classRoom.studentIds.indexOf(studentId);
+	if (index !== -1) {
+		classRoom.studentIds.splice(index, 1);
+		classRoom.updatedAt = nowIso();
+	}
+};
+
 const persistSession = (record: SessionRecord): AuthSession => {
 	database.sessions.set(record.accessToken, record);
 
@@ -237,10 +274,84 @@ export const mockServer = {
 	snapshot() {
 		return {
 			users: database.users.map(cloneUser),
-			classes: [...database.classes],
-			students: [...database.students],
+			classes: database.classes.map(cloneClassRoom),
+			students: database.students.map(cloneStudent),
 			evaluationConfigs: [...database.evaluationConfigs],
 			upcomingEvaluations: [...database.upcomingEvaluations],
 		};
+	},
+
+	async listStudents(): Promise<Student[]> {
+		await simulateNetworkDelay();
+		return database.students.map(cloneStudent);
+	},
+
+	async listClasses(): Promise<ClassRoom[]> {
+		await simulateNetworkDelay();
+		return database.classes.map(cloneClassRoom);
+	},
+
+	async createStudent(input: CreateStudentInput): Promise<Student> {
+		await simulateNetworkDelay();
+
+		const now = nowIso();
+		const student: Student = {
+			id: generateId('student'),
+			name: input.name,
+			email: input.email,
+			classId: input.classId,
+			status: input.status,
+			createdAt: now,
+			updatedAt: now,
+		};
+
+		database.students.push(student);
+		attachStudentToClass(student.classId, student.id);
+
+		return cloneStudent(student);
+	},
+
+	async updateStudent(id: string, changes: UpdateStudentInput): Promise<Student> {
+		await simulateNetworkDelay();
+
+		const student = database.students.find((candidate) => candidate.id === id);
+		if (!student) {
+			throw new Error('STUDENT_NOT_FOUND');
+		}
+
+		const previousClassId = student.classId;
+		if (typeof changes.name === 'string') {
+			student.name = changes.name;
+		}
+		if (typeof changes.email === 'string') {
+			student.email = changes.email;
+		}
+		if (typeof changes.status === 'string') {
+			student.status = changes.status;
+		}
+		if ('classId' in changes) {
+			student.classId = changes.classId ?? null;
+		}
+
+		student.updatedAt = nowIso();
+
+		if (student.classId !== previousClassId) {
+			detachStudentFromClass(previousClassId, student.id);
+			attachStudentToClass(student.classId, student.id);
+		}
+
+		return cloneStudent(student);
+	},
+
+	async deleteStudent(id: string): Promise<void> {
+		await simulateNetworkDelay();
+
+		const index = database.students.findIndex((candidate) => candidate.id === id);
+		if (index === -1) {
+			throw new Error('STUDENT_NOT_FOUND');
+		}
+
+		const [removed] = database.students.splice(index, 1);
+		detachStudentFromClass(removed.classId, removed.id);
 	},
 };
