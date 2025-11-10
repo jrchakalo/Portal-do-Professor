@@ -52,6 +52,7 @@ const StudentsPage = (): ReactElement => {
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const classNameById = useMemo(() => {
     return classes.reduce<Record<string, string>>((acc, classRoom) => {
@@ -136,10 +137,13 @@ const StudentsPage = (): ReactElement => {
 
   const handleRefresh = useCallback(async (): Promise<void> => {
     resetError();
+    setIsRefreshing(true);
     try {
       await refresh();
     } catch {
       // feedback visual já é exibido via alerta de erro
+    } finally {
+      setIsRefreshing(false);
     }
   }, [refresh, resetError]);
 
@@ -289,8 +293,9 @@ const StudentsPage = (): ReactElement => {
             variant="outline"
             colorPalette="brand"
             gap={2}
+            loading={isRefreshing}
             onClick={() => void handleRefresh()}
-            disabled={isLoading || isSaving || isDeleting}
+            disabled={isRefreshing || isLoading || isSaving || isDeleting}
           >
             <FiRefreshCw />
             <Text as="span">Atualizar</Text>

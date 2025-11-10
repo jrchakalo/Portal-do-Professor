@@ -58,6 +58,7 @@ const ClassesPage = (): ReactElement => {
   const [classToDelete, setClassToDelete] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const editedClass = useMemo(() => classes.find((classRoom) => classRoom.id === classToEdit) ?? null, [classes, classToEdit]);
   const deletedClass = useMemo(() => classes.find((classRoom) => classRoom.id === classToDelete) ?? null, [classes, classToDelete]);
@@ -139,10 +140,13 @@ const ClassesPage = (): ReactElement => {
 
   const handleRefresh = useCallback(async (): Promise<void> => {
     resetError();
+    setIsRefreshing(true);
     try {
       await refresh();
     } catch {
       // feedback visual exibido pelo alerta de erro
+    } finally {
+      setIsRefreshing(false);
     }
   }, [refresh, resetError]);
 
@@ -321,8 +325,9 @@ const ClassesPage = (): ReactElement => {
               variant="outline"
               colorPalette="brand"
               gap={2}
+              loading={isRefreshing}
               onClick={() => void handleRefresh()}
-              disabled={isLoading || isSaving || isDeleting}
+              disabled={isRefreshing || isLoading || isSaving || isDeleting}
             >
               <FiRefreshCw />
               <Text as="span">Atualizar</Text>
