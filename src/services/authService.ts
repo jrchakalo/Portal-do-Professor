@@ -94,6 +94,14 @@ export const authService = {
       return null;
     }
 
+    if (stored.user) {
+      mockServer.rehydrateSession({
+        accessToken: stored.accessToken,
+        refreshToken: stored.refreshToken,
+        userId: stored.user.id,
+      });
+    }
+
     const user = mockServer.verifyAccessToken(stored.accessToken);
     if (user) {
       const session: AuthSession = {
@@ -114,6 +122,26 @@ export const authService = {
         return await refreshWithToken(stored.refreshToken);
       } catch (error) {
         if (error instanceof AuthServiceError && error.code === 'invalid-token') {
+          if (stored.user) {
+            const fallbackSession: AuthSession = {
+              user: stored.user,
+              tokens: {
+                accessToken: stored.accessToken,
+                refreshToken: stored.refreshToken,
+              },
+              issuedAt: new Date().toISOString(),
+            };
+
+            mockServer.rehydrateSession({
+              accessToken: fallbackSession.tokens.accessToken,
+              refreshToken: fallbackSession.tokens.refreshToken,
+              userId: fallbackSession.user.id,
+            });
+
+            persistAuthSession(fallbackSession);
+            return fallbackSession;
+          }
+
           return null;
         }
         throw error;

@@ -120,19 +120,19 @@ export const MainLayout = ({ title, actions, children }: MainLayoutProps): React
     const path = location.pathname;
 
     if (path.startsWith('/dashboard')) {
-      return 'Visão geral';
+      return 'Visão Geral';
     }
 
     if (path.startsWith('/alunos')) {
-      return 'Gestão de alunos';
+      return 'Gestão de Alunos';
     }
 
     if (path.startsWith('/turmas') && path.includes('/avaliacoes')) {
-      return 'Configurar avaliações';
+      return 'Configurar Avaliações';
     }
 
     if (path.startsWith('/turmas')) {
-      return 'Gestão de turmas';
+      return 'Gestão de Turmas';
     }
 
     if (path.startsWith('/avaliacoes')) {
