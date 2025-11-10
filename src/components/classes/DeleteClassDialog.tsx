@@ -24,8 +24,22 @@ export const DeleteClassDialog = ({
 
   return (
     <Dialog.Root open={open} onOpenChange={handleOpenChange} closeOnInteractOutside={!isSubmitting}>
-      <Dialog.Backdrop />
-      <Dialog.Positioner>
+      <Dialog.Backdrop
+        position="fixed"
+        inset={0}
+        bg="blackAlpha.700"
+        backdropFilter="blur(12px)"
+      />
+      <Dialog.Positioner
+        position="fixed"
+        inset={0}
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        px={{ base: 4, md: 0 }}
+        py={{ base: 8, md: 0 }}
+        overflowY="auto"
+      >
         <Dialog.Content maxW="sm">
           <Dialog.CloseTrigger disabled={isSubmitting} />
           <Dialog.Header>

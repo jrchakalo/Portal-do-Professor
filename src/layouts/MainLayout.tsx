@@ -43,6 +43,8 @@ const navItems: NavItem[] = [
   { label: 'Avaliações', to: '/avaliacoes', icon: FiCheckSquare },
 ];
 
+const SIDEBAR_WIDTH = '17rem';
+
 const Sidebar = ({ onNavigate }: { onNavigate?: () => void }): ReactElement => {
   const location = useLocation();
 
@@ -51,15 +53,15 @@ const Sidebar = ({ onNavigate }: { onNavigate?: () => void }): ReactElement => {
       as="nav"
       gap={6}
       align="stretch"
-  px={6}
-  py={8}
-  w="68"
-  bg="gray.900"
+      px={6}
+      py={8}
+      w={SIDEBAR_WIDTH}
+      bg="gray.900"
       color="gray.200"
       boxShadow="lg"
-  minH="100vh"
-  borderTopRightRadius="3xl"
-  borderBottomRightRadius="3xl"
+      minH="100vh"
+      borderTopRightRadius="3xl"
+      borderBottomRightRadius="3xl"
     >
       <chakra.h1 fontSize="xl" fontWeight="bold" color="white">
         Portal do Professor
@@ -156,7 +158,7 @@ export const MainLayout = ({ title, actions, children }: MainLayoutProps): React
       bgGradient="linear(to-br, brand.50, transparent)"
       backdropFilter="blur(6px)"
     >
-      <Box display={{ base: 'none', lg: 'block' }} flexShrink={0}>
+      <Box display={{ base: 'none', lg: 'block' }} flexShrink={0} w={SIDEBAR_WIDTH}>
         <Sidebar />
       </Box>
 
@@ -167,11 +169,26 @@ export const MainLayout = ({ title, actions, children }: MainLayoutProps): React
           justify="space-between"
           px={{ base: 4, md: 10 }}
           py={4}
-          borderBottomWidth="1px"
-          borderColor="gray.100"
-          bg="white"
-          boxShadow="sm"
-          _dark={{ bg: 'gray.800', borderColor: 'gray.700' }}
+          position="relative"
+          isolation="isolate"
+          _before={{
+            content: '""',
+            position: 'absolute',
+            insetY: 0,
+            left: { base: 0, lg: `calc(-1 * ${SIDEBAR_WIDTH})` },
+            width: { base: '100%', lg: `calc(100% + ${SIDEBAR_WIDTH})` },
+            bg: 'white',
+            borderBottomWidth: '1px',
+            borderColor: 'gray.100',
+            boxShadow: 'sm',
+            zIndex: -1,
+          }}
+          _dark={{
+            _before: {
+              bg: 'gray.800',
+              borderColor: 'gray.700',
+            },
+          }}
         >
           <HStack gap={4}>
             <IconButton

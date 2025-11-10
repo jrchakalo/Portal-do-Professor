@@ -47,8 +47,22 @@ export const ClassFormDialog = ({
 
   return (
     <Dialog.Root open={open} onOpenChange={handleOpenChange} closeOnInteractOutside={!isSubmitting}>
-      <Dialog.Backdrop bg="blackAlpha.600" backdropFilter="blur(4px)" />
-      <Dialog.Positioner display="flex" alignItems="center" justifyContent="center" px={{ base: 4, md: 0 }}>
+      <Dialog.Backdrop
+        position="fixed"
+        inset={0}
+        bg="blackAlpha.700"
+        backdropFilter="blur(12px)"
+      />
+      <Dialog.Positioner
+        position="fixed"
+        inset={0}
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        px={{ base: 4, md: 0 }}
+        py={{ base: 8, md: 0 }}
+        overflowY="auto"
+      >
         <Dialog.Content maxW="lg" borderRadius="2xl" boxShadow="2xl">
           <Dialog.CloseTrigger disabled={isSubmitting} />
           <Dialog.Header>
