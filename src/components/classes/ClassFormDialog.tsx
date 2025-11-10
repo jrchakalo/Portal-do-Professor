@@ -47,13 +47,15 @@ export const ClassFormDialog = ({
 
   return (
     <Dialog.Root open={open} onOpenChange={handleOpenChange} closeOnInteractOutside={!isSubmitting}>
-      <Dialog.Backdrop />
-      <Dialog.Positioner>
-        <Dialog.Content maxW="lg">
+      <Dialog.Backdrop bg="blackAlpha.600" backdropFilter="blur(4px)" />
+      <Dialog.Positioner display="flex" alignItems="center" justifyContent="center" px={{ base: 4, md: 0 }}>
+        <Dialog.Content maxW="lg" borderRadius="2xl" boxShadow="2xl">
           <Dialog.CloseTrigger disabled={isSubmitting} />
           <Dialog.Header>
-            <Dialog.Title>{dialogTitle[mode]}</Dialog.Title>
-            <Dialog.Description>{dialogDescription[mode]}</Dialog.Description>
+            <Stack gap={1}>
+              <Dialog.Title>{dialogTitle[mode]}</Dialog.Title>
+              <Dialog.Description color="fg.muted">{dialogDescription[mode]}</Dialog.Description>
+            </Stack>
           </Dialog.Header>
           <Dialog.Body>
             <Stack gap={4}>
