@@ -1,4 +1,4 @@
-import { Alert, Button, Container, Field, Heading, Input, Stack, Text, chakra } from '@chakra-ui/react';
+import { Alert, Box, Button, Container, Field, Heading, Input, Stack, Text, chakra } from '@chakra-ui/react';
 import type { ChangeEvent, FormEvent, ReactElement } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
@@ -78,8 +78,19 @@ const LoginPage = (): ReactElement => {
   }
 
   return (
-    <Container maxW="lg" py={{ base: 12, md: 24 }}>
-      <Stack gap={10} alignItems="center">
+    <Box
+      minH="100vh"
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      bgGradient="linear(to-br, brand.100, white)"
+      backgroundImage="none" // Substitua "none" por url('/imagens/login-bg.jpg') para aplicar uma imagem ao fundo.
+      backgroundSize="cover"
+      backgroundPosition="center"
+      px={{ base: 4, md: 0 }}
+    >
+      <Container maxW="lg" py={{ base: 12, md: 24 }}>
+        <Stack gap={10} alignItems="center">
         <Stack gap={3} textAlign="center">
           <Heading size="2xl">Portal do Professor</Heading>
           <Text color="fg.muted">Acesse o painel para gerenciar suas turmas e avaliações.</Text>
@@ -148,8 +159,9 @@ const LoginPage = (): ReactElement => {
           Dica: utilize <chakra.span fontWeight="semibold">professora@portal.com</chakra.span> com
           a senha <chakra.span fontWeight="semibold">senha123</chakra.span> para acessar o sistema.
         </Text>
-      </Stack>
-    </Container>
+        </Stack>
+      </Container>
+    </Box>
   );
 };
 
