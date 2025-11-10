@@ -1,5 +1,6 @@
-import { Heading, SimpleGrid, Stack } from '@chakra-ui/react';
-import { useMemo, type ReactElement } from 'react';
+import { Button, Heading, HStack, SimpleGrid, Stack, Text } from '@chakra-ui/react';
+import { useMemo, useState, type ReactElement } from 'react';
+import { FiRefreshCw } from 'react-icons/fi';
 
 import { CapacityAlertsCard } from '../components/dashboard/CapacityAlertsCard';
 import { ClassCapacityCard } from '../components/dashboard/ClassCapacityCard';
@@ -22,7 +23,15 @@ const DashboardPage = (): ReactElement => {
     studentStatus,
     capacityAlerts,
     isLoading,
+    refresh,
   } = useDashboardOverview();
+
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
+
+  const handleRefresh = (): void => {
+    refresh();
+    setLastRefreshedAt(new Date());
+  };
 
   const nextEvaluationHelper = useMemo(() => {
     if (!nextEvaluation) {
@@ -34,7 +43,27 @@ const DashboardPage = (): ReactElement => {
 
   return (
     <Stack gap={6}>
-      <Heading size="lg">Visão Geral</Heading>
+      <Stack direction={{ base: 'column', md: 'row' }} align={{ base: 'flex-start', md: 'center' }} justify="space-between" gap={4}>
+        <Heading size="lg">Visão Geral</Heading>
+        <HStack gap={3} align="center">
+          <Button
+            variant="outline"
+            colorPalette="brand"
+            size="sm"
+            gap={2}
+            onClick={handleRefresh}
+            disabled={isLoading}
+          >
+            <FiRefreshCw />
+            <Text as="span">Atualizar</Text>
+          </Button>
+          {lastRefreshedAt ? (
+            <Text fontSize="sm" color="fg.muted">
+              Atualizado às {formatScheduledDate(lastRefreshedAt)}
+            </Text>
+          ) : null}
+        </HStack>
+      </Stack>
 
       <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
         <OverviewStatCard

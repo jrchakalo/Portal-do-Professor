@@ -17,8 +17,8 @@ import {
   TableRow,
   Text,
 } from '@chakra-ui/react';
-import type { ChangeEvent, ReactElement } from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import type { ChangeEvent, CSSProperties, ReactElement } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FiCheckSquare, FiEdit2, FiPlus, FiRefreshCw, FiTrash } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 
@@ -35,6 +35,11 @@ const formatter = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'short',
   timeStyle: 'short',
 });
+
+const OCCUPANCY_GRADIENT = 'linear-gradient(90deg, #3b82f6 0%, #facc15 50%, #ef4444 100%)';
+const occupancyGradientStyle = {
+  '--progress-range-bg': OCCUPANCY_GRADIENT,
+} as CSSProperties;
 
 const ClassesPage = (): ReactElement => {
   const navigate = useNavigate();
@@ -59,6 +64,13 @@ const ClassesPage = (): ReactElement => {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setLastSyncedAt(new Date());
+    }
+  }, [isLoading]);
 
   const editedClass = useMemo(() => classes.find((classRoom) => classRoom.id === classToEdit) ?? null, [classes, classToEdit]);
   const deletedClass = useMemo(() => classes.find((classRoom) => classRoom.id === classToDelete) ?? null, [classes, classToDelete]);
@@ -143,6 +155,7 @@ const ClassesPage = (): ReactElement => {
     setIsRefreshing(true);
     try {
       await refresh();
+      setLastSyncedAt(new Date());
     } catch {
       // feedback visual exibido pelo alerta de erro
     } finally {
@@ -159,6 +172,7 @@ const ClassesPage = (): ReactElement => {
         } else if (classToEdit) {
           await updateClass(classToEdit, values);
         }
+        setLastSyncedAt(new Date());
         handleCloseForm();
       } catch {
         // erro exibido via alerta
@@ -177,6 +191,7 @@ const ClassesPage = (): ReactElement => {
     setIsDeleting(true);
     try {
       await deleteClass(classToDelete);
+      setLastSyncedAt(new Date());
       handleCloseDelete();
     } catch {
       // erro exibido via alerta
@@ -214,7 +229,7 @@ const ClassesPage = (): ReactElement => {
       const statusLabel = statusIsFull ? 'Lotada' : 'Com vagas';
       const statusPalette = statusIsFull ? 'red' : 'green';
       const occupancy = capacity > 0 ? Math.min((enrolled / capacity) * 100, 100) : 0;
-      const updatedAt = formatter.format(new Date(classRoom.updatedAt));
+  const updatedAt = formatter.format(new Date(classRoom.updatedAt));
 
       return (
         <TableRow key={classRoom.id}>
@@ -240,7 +255,7 @@ const ClassesPage = (): ReactElement => {
             <Stack gap={2}>
               <Progress.Root value={enrolled} max={Math.max(capacity, 1)}>
                 <Progress.Track bg="gray.100">
-                  <Progress.Range bgGradient="linear(to-r, #3b82f6 0%, #facc15 50%, #ef4444 100%)" />
+                  <Progress.Range style={occupancyGradientStyle} />
                 </Progress.Track>
               </Progress.Root>
               <HStack justify="space-between">
@@ -343,6 +358,11 @@ const ClassesPage = (): ReactElement => {
               <Text as="span">Nova turma</Text>
             </Button>
           </HStack>
+        {lastSyncedAt ? (
+          <Text fontSize="sm" color="fg.muted">
+            Última atualização às {formatter.format(lastSyncedAt)}
+          </Text>
+        ) : null}
       </Stack>
 
       <SimpleGrid columns={{ base: 1, md: 2, xl: 4 }} gap={4}>

@@ -1,5 +1,5 @@
 import { Box, Card, Flex, Heading, Progress, Stack, Text } from '@chakra-ui/react';
-import type { ReactElement } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
 
 import type { ClassSummary } from '../../hooks/useDashboardOverview';
 
@@ -7,6 +7,11 @@ interface ClassCapacityCardProps {
   classes: ClassSummary[];
   isLoading: boolean;
 }
+
+const OCCUPANCY_GRADIENT = 'linear-gradient(90deg, #3b82f6 0%, #facc15 50%, #ef4444 100%)';
+const occupancyGradientStyle = {
+  '--progress-range-bg': OCCUPANCY_GRADIENT,
+} as CSSProperties;
 
 export const ClassCapacityCard = ({ classes, isLoading }: ClassCapacityCardProps): ReactElement => {
   return (
@@ -36,8 +41,8 @@ export const ClassCapacityCard = ({ classes, isLoading }: ClassCapacityCardProps
                   </Text>
                 </Flex>
                 <Progress.Root value={classSummary.occupancyPercent} max={100}>
-                  <Progress.Track>
-                    <Progress.Range />
+                  <Progress.Track bg="gray.100">
+                    <Progress.Range style={occupancyGradientStyle} />
                   </Progress.Track>
                 </Progress.Root>
                 <Text fontSize="xs" color="fg.muted" mt={1}>
