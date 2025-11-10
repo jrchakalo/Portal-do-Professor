@@ -189,7 +189,7 @@ export const EvaluationCriteriaForm = ({
                   <IconButton
                     aria-label="Remover critério"
                     size="sm"
-                    variant="ghost"
+                    variant="subtle"
                     colorPalette="red"
                     onClick={() => handleRemoveCriterion(field.fieldId)}
                     disabled={isSubmitting || fields.length === 1}
@@ -227,7 +227,14 @@ export const EvaluationCriteriaForm = ({
           })}
         </Stack>
 
-        <Button type="button" variant="outline" gap={2} onClick={handleAddCriterion} disabled={isSubmitting}>
+        <Button
+          type="button"
+          variant="outline"
+          colorPalette="brand"
+          gap={2}
+          onClick={handleAddCriterion}
+          disabled={isSubmitting}
+        >
           <FiPlus />
           <Text as="span">Adicionar critério</Text>
         </Button>

@@ -49,17 +49,17 @@ const Sidebar = ({ onNavigate }: { onNavigate?: () => void }): ReactElement => {
   return (
     <VStack
       as="nav"
-      gap={4}
+      gap={6}
       align="stretch"
-      px={6}
-      py={8}
-      w="64"
-      bg="white"
-      borderRightWidth="1px"
-      borderColor="gray.100"
-      _dark={{ bg: 'gray.900', borderColor: 'gray.700' }}
+  px={6}
+  py={8}
+      w="68"
+      bgGradient="linear(to-b, brand.700, brand.900)"
+      color="whiteAlpha.800"
+      boxShadow="lg"
+  minH="100vh"
     >
-      <chakra.h1 fontSize="xl" fontWeight="bold">
+      <chakra.h1 fontSize="xl" fontWeight="bold" color="white">
         Portal do Professor
       </chakra.h1>
       <Stack as="ul" listStyleType="none" m={0} p={0} gap={1}>
@@ -87,18 +87,9 @@ const Sidebar = ({ onNavigate }: { onNavigate?: () => void }): ReactElement => {
                   py={2}
                   borderRadius="lg"
                   fontWeight="medium"
-                  color={isActive ? 'white' : 'fg.muted'}
-                  bg={isActive ? 'brand.500' : 'transparent'}
-                  _hover={
-                    isActive
-                      ? { bg: 'brand.600', color: 'white' }
-                      : { bg: 'gray.100', color: 'fg.default' }
-                  }
-                  _dark={
-                    isActive
-                      ? { bg: 'brand.400', color: 'gray.900' }
-                      : { color: 'fg.muted', _hover: { bg: 'gray.800', color: 'fg.default' } }
-                  }
+                  color={isActive ? 'white' : 'whiteAlpha.800'}
+                  bg={isActive ? 'whiteAlpha.300' : 'transparent'}
+                  _hover={{ bg: 'whiteAlpha.200', color: 'white' }}
                 >
                   <chakra.span fontSize="lg">
                     <item.icon />
@@ -127,7 +118,7 @@ export const MainLayout = ({ title, actions, children }: MainLayoutProps): React
   };
 
   return (
-    <Flex minH="100vh">
+    <Flex minH="100vh" bg="gray.100">
       <Box display={{ base: 'none', lg: 'block' }} flexShrink={0}>
         <Sidebar />
       </Box>
@@ -137,17 +128,19 @@ export const MainLayout = ({ title, actions, children }: MainLayoutProps): React
           as="header"
           align="center"
           justify="space-between"
-          px={{ base: 4, md: 8 }}
+          px={{ base: 4, md: 10 }}
           py={4}
           borderBottomWidth="1px"
           borderColor="gray.100"
           bg="white"
+          boxShadow="sm"
           _dark={{ bg: 'gray.800', borderColor: 'gray.700' }}
         >
           <HStack gap={4}>
             <IconButton
               aria-label="Abrir menu"
-              variant="ghost"
+              variant="solid"
+              colorPalette="brand"
               display={{ base: 'inline-flex', lg: 'none' }}
               onClick={handleOpenMobileNav}
             >
@@ -166,7 +159,12 @@ export const MainLayout = ({ title, actions, children }: MainLayoutProps): React
                 {user?.email}
               </Text>
             </VStack>
-            <IconButton aria-label="Encerrar sessão" variant="outline" onClick={() => void logout()}>
+            <IconButton
+              aria-label="Encerrar sessão"
+              variant="solid"
+              colorPalette="brand"
+              onClick={() => void logout()}
+            >
               <FiLogOut />
             </IconButton>
           </HStack>
@@ -175,20 +173,22 @@ export const MainLayout = ({ title, actions, children }: MainLayoutProps): React
         <Box
           as="main"
           flex="1"
-          px={{ base: 4, md: 8 }}
+          px={{ base: 4, md: 10 }}
           py={{ base: 6, md: 10 }}
           bg="gray.50"
           _dark={{ bg: 'gray.900' }}
         >
-          {children ?? <Outlet />}
+          <Box maxW="1200px" mx="auto">
+            {children ?? <Outlet />}
+          </Box>
         </Box>
       </Flex>
 
       <Drawer.Root open={isMobileNavOpen} onOpenChange={handleMobileNavChange} placement="start">
         <Drawer.Backdrop />
         <Drawer.Positioner>
-          <Drawer.Content maxW="xs" p={0} bg="white" _dark={{ bg: 'gray.900' }}>
-            <Drawer.CloseTrigger position="absolute" top={2} right={2} />
+          <Drawer.Content maxW="xs" p={0} bgGradient="linear(to-b, brand.700, brand.900)" color="white">
+            <Drawer.CloseTrigger position="absolute" top={2} right={2} color="whiteAlpha.900" />
             <Sidebar onNavigate={() => setMobileNavOpen(false)} />
           </Drawer.Content>
         </Drawer.Positioner>

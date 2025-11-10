@@ -2,6 +2,7 @@ import {
   createSystem,
   defaultConfig,
   defineConfig,
+  defineGlobalStyles,
   defineSemanticTokens,
   defineTokens,
 } from '@chakra-ui/react';
@@ -38,9 +39,22 @@ const semanticTokens = defineSemanticTokens({
     'bg.canvas': {
       value: { base: '{colors.gray.50}', _dark: '{colors.gray.900}' },
     },
+    'fg.default': {
+      value: { base: '{colors.gray.900}', _dark: '{colors.gray.100}' },
+    },
     'fg.muted': {
       value: { base: '{colors.gray.600}', _dark: '{colors.gray.300}' },
     },
+  },
+});
+
+const globalCss = defineGlobalStyles({
+  body: {
+    bg: 'bg.canvas',
+    color: 'fg.default',
+  },
+  '#root': {
+    minHeight: '100vh',
   },
 });
 
@@ -49,6 +63,7 @@ const customConfig = defineConfig({
     tokens,
     semanticTokens,
   },
+  globalCss,
 });
 
 export const system = createSystem(defaultConfig, customConfig);

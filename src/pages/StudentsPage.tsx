@@ -226,13 +226,19 @@ const StudentsPage = (): ReactElement => {
           </TableCell>
           <TableCell textAlign="right">
             <HStack gap={2} justify="flex-end">
-              <IconButton aria-label="Editar aluno" size="sm" variant="ghost" onClick={() => handleOpenEdit(student)}>
+              <IconButton
+                aria-label="Editar aluno"
+                size="sm"
+                variant="subtle"
+                colorPalette="brand"
+                onClick={() => handleOpenEdit(student)}
+              >
                 <FiEdit2 />
               </IconButton>
               <IconButton
                 aria-label="Remover aluno"
                 size="sm"
-                variant="ghost"
+                variant="subtle"
                 colorPalette="red"
                 onClick={() => handleOpenDelete(student)}
               >
@@ -278,20 +284,27 @@ const StudentsPage = (): ReactElement => {
           <Heading size="lg">Alunos</Heading>
           <Text color="fg.muted">Gerencie os alunos matriculados e mantenha os dados sempre atualizados.</Text>
         </Stack>
-              <HStack gap={3} align="center">
-                <Button
-                  variant="outline"
-                  gap={2}
-                  onClick={() => void handleRefresh()}
-                  disabled={isLoading || isSaving || isDeleting}
-                >
-                  <FiRefreshCw />
-                  <Text as="span">Atualizar</Text>
-                </Button>
-                <Button colorPalette="brand" gap={2} onClick={handleOpenCreate} disabled={isSaving || isDeleting}>
-                  <FiPlus />
-                  <Text as="span">Novo aluno</Text>
-                </Button>
+        <HStack gap={3} align="center">
+          <Button
+            variant="outline"
+            colorPalette="brand"
+            gap={2}
+            onClick={() => void handleRefresh()}
+            disabled={isLoading || isSaving || isDeleting}
+          >
+            <FiRefreshCw />
+            <Text as="span">Atualizar</Text>
+          </Button>
+          <Button
+            variant="solid"
+            colorPalette="brand"
+            gap={2}
+            onClick={handleOpenCreate}
+            disabled={isSaving || isDeleting}
+          >
+            <FiPlus />
+            <Text as="span">Novo aluno</Text>
+          </Button>
         </HStack>
       </Stack>
 

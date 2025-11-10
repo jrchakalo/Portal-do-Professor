@@ -189,6 +189,7 @@ const EvaluationsPage = (): ReactElement => {
         <HStack gap={3} align="center">
           <Button
             variant="outline"
+            colorPalette="brand"
             gap={2}
             onClick={() => void handleRefresh()}
             disabled={isLoading || isMutating || isSaving}

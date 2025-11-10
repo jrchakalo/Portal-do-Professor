@@ -250,28 +250,35 @@ const ClassesPage = (): ReactElement => {
             </Stack>
           </TableCell>
           <TableCell textAlign="right">
-            <HStack gap={2} justify="flex-end">
-              <IconButton
-                aria-label="Configurar avaliações"
-                size="sm"
-                variant="ghost"
-                onClick={() => handleOpenEvaluations(classRoom.id)}
-              >
-                <FiCheckSquare />
-              </IconButton>
-              <IconButton aria-label="Editar turma" size="sm" variant="ghost" onClick={() => handleOpenEdit(classRoom.id)}>
-                <FiEdit2 />
-              </IconButton>
-              <IconButton
-                aria-label="Remover turma"
-                size="sm"
-                variant="ghost"
-                colorPalette="red"
-                onClick={() => handleOpenDelete(classRoom.id)}
-              >
-                <FiTrash />
-              </IconButton>
-            </HStack>
+                <HStack gap={2} justify="flex-end">
+                  <IconButton
+                    aria-label="Configurar avaliações"
+                    size="sm"
+                    variant="subtle"
+                    colorPalette="brand"
+                    onClick={() => handleOpenEvaluations(classRoom.id)}
+                  >
+                    <FiCheckSquare />
+                  </IconButton>
+                  <IconButton
+                    aria-label="Editar turma"
+                    size="sm"
+                    variant="subtle"
+                    colorPalette="brand"
+                    onClick={() => handleOpenEdit(classRoom.id)}
+                  >
+                    <FiEdit2 />
+                  </IconButton>
+                  <IconButton
+                    aria-label="Remover turma"
+                    size="sm"
+                    variant="subtle"
+                    colorPalette="red"
+                    onClick={() => handleOpenDelete(classRoom.id)}
+                  >
+                    <FiTrash />
+                  </IconButton>
+                </HStack>
           </TableCell>
         </TableRow>
       );
@@ -309,21 +316,28 @@ const ClassesPage = (): ReactElement => {
           <Heading size="lg">Turmas</Heading>
           <Text color="fg.muted">Organize as turmas, acompanhe a ocupação e mantenha as vagas atualizadas.</Text>
         </Stack>
-        <HStack gap={3} align="center">
-          <Button
-            variant="outline"
-            gap={2}
-            onClick={() => void handleRefresh()}
-            disabled={isLoading || isSaving || isDeleting}
-          >
-            <FiRefreshCw />
-            <Text as="span">Atualizar</Text>
-          </Button>
-          <Button colorPalette="brand" gap={2} onClick={handleOpenCreate} disabled={isSaving || isDeleting}>
-            <FiPlus />
-            <Text as="span">Nova turma</Text>
-          </Button>
-        </HStack>
+          <HStack gap={3} align="center">
+            <Button
+              variant="outline"
+              colorPalette="brand"
+              gap={2}
+              onClick={() => void handleRefresh()}
+              disabled={isLoading || isSaving || isDeleting}
+            >
+              <FiRefreshCw />
+              <Text as="span">Atualizar</Text>
+            </Button>
+            <Button
+              variant="solid"
+              colorPalette="brand"
+              gap={2}
+              onClick={handleOpenCreate}
+              disabled={isSaving || isDeleting}
+            >
+              <FiPlus />
+              <Text as="span">Nova turma</Text>
+            </Button>
+          </HStack>
       </Stack>
 
       <SimpleGrid columns={{ base: 1, md: 2, xl: 4 }} gap={4}>
