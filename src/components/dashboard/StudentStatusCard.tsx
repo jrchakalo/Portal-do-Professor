@@ -28,8 +28,8 @@ export const StudentStatusCard = ({ status, isLoading }: StudentStatusCardProps)
               <Text color="fg.muted">{status.active}</Text>
             </Flex>
             <Progress.Root value={activePercent} max={100}>
-              <Progress.Track>
-                <Progress.Range />
+              <Progress.Track bg="gray.100">
+                <Progress.Range bgGradient="linear(to-r, red.400, yellow.400, green.500)" />
               </Progress.Track>
             </Progress.Root>
             <Flex justify="space-between" fontSize="sm" color="fg.muted">

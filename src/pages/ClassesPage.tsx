@@ -234,9 +234,9 @@ const ClassesPage = (): ReactElement => {
           </TableCell>
           <TableCell>
             <Stack gap={2}>
-              <Progress.Root value={enrolled} max={Math.max(capacity, 1)} colorPalette={statusIsFull ? 'red' : 'brand'}>
-                <Progress.Track>
-                  <Progress.Range />
+              <Progress.Root value={enrolled} max={Math.max(capacity, 1)}>
+                <Progress.Track bg="gray.100">
+                  <Progress.Range bgGradient="linear(to-r, blue.400, yellow.400, red.500)" />
                 </Progress.Track>
               </Progress.Root>
               <HStack justify="space-between">
