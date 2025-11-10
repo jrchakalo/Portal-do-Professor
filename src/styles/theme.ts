@@ -37,7 +37,10 @@ const tokens = defineTokens({
 const semanticTokens = defineSemanticTokens({
   colors: {
     'bg.canvas': {
-      value: { base: '{colors.gray.50}', _dark: '{colors.gray.900}' },
+      value: { base: '{colors.gray.100}', _dark: '{colors.gray.900}' },
+    },
+    'bg.surface': {
+      value: { base: 'white', _dark: '{colors.gray.800}' },
     },
     'fg.default': {
       value: { base: '{colors.gray.900}', _dark: '{colors.gray.100}' },
@@ -51,7 +54,9 @@ const semanticTokens = defineSemanticTokens({
 const globalCss = defineGlobalStyles({
   body: {
     bg: 'bg.canvas',
+    bgGradient: 'linear(to-br, brand.50, bg.canvas, white)',
     color: 'fg.default',
+    backgroundAttachment: 'fixed',
   },
   '#root': {
     minHeight: '100vh',

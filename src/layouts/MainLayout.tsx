@@ -1,4 +1,4 @@
-import { useState, type ReactElement, type ReactNode } from 'react';
+import { useMemo, useState, type ReactElement, type ReactNode } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 import {
@@ -54,8 +54,8 @@ const Sidebar = ({ onNavigate }: { onNavigate?: () => void }): ReactElement => {
   px={6}
   py={8}
       w="68"
-      bgGradient="linear(to-b, brand.700, brand.900)"
-      color="whiteAlpha.800"
+      bg="gray.900"
+      color="gray.200"
       boxShadow="lg"
   minH="100vh"
     >
@@ -87,9 +87,9 @@ const Sidebar = ({ onNavigate }: { onNavigate?: () => void }): ReactElement => {
                   py={2}
                   borderRadius="lg"
                   fontWeight="medium"
-                  color={isActive ? 'white' : 'whiteAlpha.800'}
-                  bg={isActive ? 'whiteAlpha.300' : 'transparent'}
-                  _hover={{ bg: 'whiteAlpha.200', color: 'white' }}
+                  color={isActive ? 'white' : 'gray.200'}
+                  bg={isActive ? 'brand.500' : 'transparent'}
+                  _hover={{ bg: isActive ? 'brand.500' : 'gray.700', color: 'white' }}
                 >
                   <chakra.span fontSize="lg">
                     <item.icon />
@@ -108,6 +108,37 @@ const Sidebar = ({ onNavigate }: { onNavigate?: () => void }): ReactElement => {
 export const MainLayout = ({ title, actions, children }: MainLayoutProps): ReactElement => {
   const { user, logout } = useAuth();
   const [isMobileNavOpen, setMobileNavOpen] = useState(false);
+  const location = useLocation();
+
+  const resolvedTitle = useMemo(() => {
+    if (title) {
+      return title;
+    }
+
+    const path = location.pathname;
+
+    if (path.startsWith('/dashboard')) {
+      return 'Visão geral';
+    }
+
+    if (path.startsWith('/alunos')) {
+      return 'Gestão de alunos';
+    }
+
+    if (path.startsWith('/turmas') && path.includes('/avaliacoes')) {
+      return 'Configurar avaliações';
+    }
+
+    if (path.startsWith('/turmas')) {
+      return 'Gestão de turmas';
+    }
+
+    if (path.startsWith('/avaliacoes')) {
+      return 'Avaliações';
+    }
+
+    return 'Portal do Professor';
+  }, [location.pathname, title]);
 
   const handleOpenMobileNav = (): void => {
     setMobileNavOpen(true);
@@ -118,7 +149,11 @@ export const MainLayout = ({ title, actions, children }: MainLayoutProps): React
   };
 
   return (
-    <Flex minH="100vh" bg="gray.100">
+    <Flex
+      minH="100vh"
+      bgGradient="linear(to-br, brand.50, transparent)"
+      backdropFilter="blur(6px)"
+    >
       <Box display={{ base: 'none', lg: 'block' }} flexShrink={0}>
         <Sidebar />
       </Box>
@@ -146,8 +181,8 @@ export const MainLayout = ({ title, actions, children }: MainLayoutProps): React
             >
               <FiMenu />
             </IconButton>
-            <Text fontSize="lg" fontWeight="semibold">
-              {title ?? 'Painel'}
+            <Text fontSize="lg" fontWeight="semibold" color="fg.default">
+              {resolvedTitle}
             </Text>
           </HStack>
 
@@ -170,15 +205,18 @@ export const MainLayout = ({ title, actions, children }: MainLayoutProps): React
           </HStack>
         </Flex>
 
-        <Box
-          as="main"
-          flex="1"
-          px={{ base: 4, md: 10 }}
-          py={{ base: 6, md: 10 }}
-          bg="gray.50"
-          _dark={{ bg: 'gray.900' }}
-        >
-          <Box maxW="1200px" mx="auto">
+        <Box as="main" flex="1" px={{ base: 4, md: 10 }} py={{ base: 6, md: 10 }}>
+          <Box
+            maxW="1200px"
+            mx="auto"
+            bg="bg.surface"
+            borderRadius="2xl"
+            boxShadow="xl"
+            px={{ base: 4, md: 10 }}
+            py={{ base: 6, md: 10 }}
+            borderWidth="1px"
+            borderColor="gray.100"
+          >
             {children ?? <Outlet />}
           </Box>
         </Box>
@@ -187,7 +225,7 @@ export const MainLayout = ({ title, actions, children }: MainLayoutProps): React
       <Drawer.Root open={isMobileNavOpen} onOpenChange={handleMobileNavChange} placement="start">
         <Drawer.Backdrop />
         <Drawer.Positioner>
-          <Drawer.Content maxW="xs" p={0} bgGradient="linear(to-b, brand.700, brand.900)" color="white">
+          <Drawer.Content maxW="xs" p={0} bg="gray.900" color="white">
             <Drawer.CloseTrigger position="absolute" top={2} right={2} color="whiteAlpha.900" />
             <Sidebar onNavigate={() => setMobileNavOpen(false)} />
           </Drawer.Content>
