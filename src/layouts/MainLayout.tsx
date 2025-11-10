@@ -53,11 +53,13 @@ const Sidebar = ({ onNavigate }: { onNavigate?: () => void }): ReactElement => {
       align="stretch"
   px={6}
   py={8}
-      w="68"
-      bg="gray.900"
+  w="68"
+  bg="gray.900"
       color="gray.200"
       boxShadow="lg"
   minH="100vh"
+  borderTopRightRadius="3xl"
+  borderBottomRightRadius="3xl"
     >
       <chakra.h1 fontSize="xl" fontWeight="bold" color="white">
         Portal do Professor
