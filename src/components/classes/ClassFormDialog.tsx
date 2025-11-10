@@ -51,19 +51,21 @@ export const ClassFormDialog = ({
         position="fixed"
         inset={0}
         bg="blackAlpha.700"
-        backdropFilter="blur(12px)"
+        backdropFilter="blur(14px)"
+        zIndex="overlay"
       />
       <Dialog.Positioner
         position="fixed"
         inset={0}
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
+        display="grid"
+        placeItems="center"
+        minH="100vh"
         px={{ base: 4, md: 0 }}
-        py={{ base: 8, md: 0 }}
+        py={{ base: 6, md: 0 }}
         overflowY="auto"
+        zIndex="overlay"
       >
-        <Dialog.Content maxW="lg" borderRadius="2xl" boxShadow="2xl">
+        <Dialog.Content maxW="lg" borderRadius="2xl" boxShadow="2xl" my={{ base: 8, md: 0 }}>
           <Dialog.CloseTrigger disabled={isSubmitting} />
           <Dialog.Header>
             <Stack gap={1}>

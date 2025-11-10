@@ -240,7 +240,7 @@ const ClassesPage = (): ReactElement => {
             <Stack gap={2}>
               <Progress.Root value={enrolled} max={Math.max(capacity, 1)}>
                 <Progress.Track bg="gray.100">
-                  <Progress.Range bgGradient="linear(to-r, blue.400, yellow.400, red.500)" />
+                  <Progress.Range bgGradient="linear(to-r, #3b82f6 0%, #facc15 50%, #ef4444 100%)" />
                 </Progress.Track>
               </Progress.Root>
               <HStack justify="space-between">

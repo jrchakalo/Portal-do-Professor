@@ -62,6 +62,8 @@ const Sidebar = ({ onNavigate }: { onNavigate?: () => void }): ReactElement => {
       minH="100vh"
       borderTopRightRadius="3xl"
       borderBottomRightRadius="3xl"
+      position="relative"
+      zIndex={2}
     >
       <chakra.h1 fontSize="xl" fontWeight="bold" color="white">
         Portal do Professor
@@ -171,6 +173,7 @@ export const MainLayout = ({ title, actions, children }: MainLayoutProps): React
           py={4}
           position="relative"
           isolation="isolate"
+          zIndex={0}
           _before={{
             content: '""',
             position: 'absolute',
