@@ -3,6 +3,7 @@ import { useCallback, useContext, useMemo } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import type { AuthCredentials } from '../types';
 
+// Hook responsável por expor o contexto de autenticação com nomenclatura coerente para os componentes
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -11,6 +12,7 @@ export const useAuth = () => {
 
   const { login, logout, refreshSession, resetError, ...rest } = context;
 
+  // Padroniza nomenclatura e evita recriação desnecessária das funções vindas do contexto
   const authenticate = useCallback(
     (credentials: AuthCredentials) => login(credentials),
     [login],

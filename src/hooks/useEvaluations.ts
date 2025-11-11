@@ -40,6 +40,7 @@ const toEvaluationsError = (error: unknown): EvaluationsError => {
   };
 };
 
+// Facilita consultas O(1) por turma na tela de avaliações
 const createConfigsMap = (configs: EvaluationConfig[]): Record<string, EvaluationConfig> => {
   return configs.reduce<Record<string, EvaluationConfig>>((acc, config) => {
     acc[config.classId] = config;
@@ -47,10 +48,12 @@ const createConfigsMap = (configs: EvaluationConfig[]): Record<string, Evaluatio
   }, {});
 };
 
+// Mantém a lista de próximas avaliações ordenada cronologicamente
 const sortUpcoming = (upcoming: UpcomingEvaluation[]): UpcomingEvaluation[] => {
   return [...upcoming].sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
 };
 
+// Hook que centraliza chamadas e estado das configurações de avaliação
 export const useEvaluations = (): UseEvaluationsState => {
   const [classes, setClasses] = useState<ClassRoom[]>([]);
   const [configs, setConfigs] = useState<Record<string, EvaluationConfig>>({});

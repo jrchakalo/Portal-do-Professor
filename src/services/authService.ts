@@ -18,6 +18,7 @@ export class AuthServiceError extends Error {
   }
 }
 
+// Garante que toda resposta de autenticação reflita imediatamente no storage local
 const ensureSessionPersistence = (session: AuthSession): AuthSession => {
   persistAuthSession(session);
   return session;
@@ -43,6 +44,7 @@ const mapMockErrorToAuthError = (error: unknown): AuthServiceError => {
   return new AuthServiceError('unknown', 'Erro desconhecido na autenticação.');
 };
 
+// Força um refresh utilizando o token atual e trata expiradas inesperadas
 const refreshWithToken = async (refreshToken: string): Promise<AuthSession> => {
   try {
     const session = await mockServer.refreshSession(refreshToken);
@@ -88,6 +90,7 @@ export const authService = {
     return refreshWithToken(token);
   },
 
+  // Restaura a sessão local sincronizando com o mock server sempre que possível
   async restoreSession(): Promise<AuthSession | null> {
     const stored = readPersistedSession();
     if (!stored?.accessToken) {
