@@ -84,7 +84,9 @@ const LoginPage = (): ReactElement => {
       alignItems="center"
       justifyContent="center"
       bgGradient="linear(to-br, brand.100, white)"
-      backgroundImage="none" // Substitua "none" por url('/imagens/login-bg.jpg') para aplicar uma imagem ao fundo.
+      backgroundImage="url('/login-bg.jpg')"
+      backgroundColor="rgba(0,0,0,0.60)"
+      backgroundBlendMode="overlay"
       backgroundSize="cover"
       backgroundPosition="center"
       px={{ base: 4, md: 0 }}
@@ -92,8 +94,10 @@ const LoginPage = (): ReactElement => {
       <Container maxW="lg" py={{ base: 12, md: 24 }}>
         <Stack gap={10} alignItems="center">
         <Stack gap={3} textAlign="center">
-          <Heading size="2xl">Portal do Professor</Heading>
-          <Text color="fg.muted">Acesse o painel para gerenciar suas turmas e avaliações.</Text>
+          <Heading size="2xl" color="beige.50">Portal do Professor</Heading>
+          <Text color="beige.100">
+            Acesse o painel para gerenciar suas turmas e avaliações.
+          </Text>
         </Stack>
 
         <chakra.form
@@ -155,7 +159,7 @@ const LoginPage = (): ReactElement => {
           </Stack>
   </chakra.form>
 
-        <Text fontSize="sm" color="fg.muted">
+        <Text fontSize="sm" color="beige.200">
           Dica: utilize <chakra.span fontWeight="semibold">professora@portal.com</chakra.span> com
           a senha <chakra.span fontWeight="semibold">senha123</chakra.span> para acessar o sistema.
         </Text>

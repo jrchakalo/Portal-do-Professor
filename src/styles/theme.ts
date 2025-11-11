@@ -60,6 +60,12 @@ const tokens = defineTokens({
       800: { value: '#083b21' },
       900: { value: '#001a10' },
     },
+
+    beige: {
+      50: { value: "#FFF8EE" },
+      100: { value: "#F3E6D3" },
+      200: { value: "#E5D2B3" },
+    },
   },
 
   fonts: {
