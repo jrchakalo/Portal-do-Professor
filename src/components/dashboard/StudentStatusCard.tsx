@@ -1,5 +1,5 @@
 import { Card, Flex, Heading, Progress, Stack, Text } from '@chakra-ui/react';
-import type { CSSProperties, ReactElement } from 'react';
+import type { ReactElement } from 'react';
 
 import type { StudentStatusSummary } from '../../hooks/useDashboardOverview';
 
@@ -8,10 +8,11 @@ interface StudentStatusCardProps {
   isLoading: boolean;
 }
 
-const ENGAGEMENT_GRADIENT = 'linear-gradient(90deg, #ef4444 0%, #facc15 50%, #16a34a 100%)';
-const engagementGradientStyle = {
-  '--progress-range-bg': ENGAGEMENT_GRADIENT,
-} as CSSProperties;
+const getEngagementColor = (percent: number) => {
+  if (percent < 40) return "#ef4444"; // Vermelho (baixo engajamento)
+  if (percent < 70) return "#facc15"; // Amarelo (mediano)
+  return "#16a34a"; // Verde (bom)
+};
 
 export const StudentStatusCard = ({ status, isLoading }: StudentStatusCardProps): ReactElement => {
   const activePercent = status.total > 0 ? Math.round((status.active / status.total) * 100) : 0;
@@ -33,8 +34,8 @@ export const StudentStatusCard = ({ status, isLoading }: StudentStatusCardProps)
               <Text color="fg.muted">{status.active}</Text>
             </Flex>
             <Progress.Root value={activePercent} max={100}>
-              <Progress.Track bg="gray.100">
-                <Progress.Range style={engagementGradientStyle} />
+              <Progress.Track bg="gray.100" borderRadius="full" overflow="hidden">
+                <Progress.Range bg={getEngagementColor(activePercent)} />
               </Progress.Track>
             </Progress.Root>
             <Flex justify="space-between" fontSize="sm" color="fg.muted">

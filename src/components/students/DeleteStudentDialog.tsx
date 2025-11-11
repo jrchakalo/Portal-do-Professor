@@ -1,4 +1,4 @@
-import { Button, Dialog, Stack, Text } from '@chakra-ui/react';
+import { Button, Dialog, Stack, Text, Portal } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 
 interface DeleteStudentDialogProps {
@@ -23,7 +23,14 @@ export const DeleteStudentDialog = ({
   };
 
   return (
-    <Dialog.Root open={open} onOpenChange={handleOpenChange} closeOnInteractOutside={!isSubmitting}>
+    <Portal>
+      <Dialog.Root
+        open={open}
+        onOpenChange={handleOpenChange}
+        closeOnInteractOutside={!isSubmitting}
+        modal={true} 
+      lazyMount
+    >
       <Dialog.Backdrop
         position="fixed"
         inset={0}
@@ -72,5 +79,6 @@ export const DeleteStudentDialog = ({
         </Dialog.Content>
       </Dialog.Positioner>
     </Dialog.Root>
+    </Portal>
   );
 };

@@ -1,4 +1,4 @@
-import { Alert, Dialog, Stack } from '@chakra-ui/react';
+import { Alert, Dialog, Stack, Portal } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 
 import type { ClassRoom } from '../../types';
@@ -49,7 +49,14 @@ export const StudentFormDialog = ({
   };
 
   return (
-    <Dialog.Root open={open} onOpenChange={handleOpenChange} closeOnInteractOutside={!isSubmitting}>
+    <Portal>
+      <Dialog.Root
+        open={open}
+        onOpenChange={handleOpenChange}
+        closeOnInteractOutside={!isSubmitting}
+        modal={true} 
+      lazyMount
+    >
       <Dialog.Backdrop
         position="fixed"
         inset={0}
@@ -98,5 +105,6 @@ export const StudentFormDialog = ({
         </Dialog.Content>
       </Dialog.Positioner>
     </Dialog.Root>
+    </Portal>
   );
 };

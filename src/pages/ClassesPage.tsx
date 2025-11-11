@@ -17,7 +17,7 @@ import {
   TableRow,
   Text,
 } from '@chakra-ui/react';
-import type { ChangeEvent, CSSProperties, ReactElement } from 'react';
+import type { ChangeEvent, ReactElement } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FiCheckSquare, FiEdit2, FiPlus, FiRefreshCw, FiTrash } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
@@ -27,6 +27,7 @@ import { DeleteClassDialog } from '../components/classes/DeleteClassDialog';
 import type { ClassFormValues } from '../components/classes/ClassForm';
 import { OverviewStatCard } from '../components/dashboard/OverviewStatCard';
 import { DataTable } from '../components/table/DataTable';
+import { getOccupancyColor } from '../utils/progressColors';
 import { useClasses } from '../hooks/useClasses';
 
 type OccupancyFilter = 'all' | 'available' | 'full';
@@ -35,11 +36,6 @@ const formatter = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'short',
   timeStyle: 'short',
 });
-
-const OCCUPANCY_GRADIENT = 'linear-gradient(90deg, #3b82f6 0%, #facc15 50%, #ef4444 100%)';
-const occupancyGradientStyle = {
-  '--progress-range-bg': OCCUPANCY_GRADIENT,
-} as CSSProperties;
 
 const ClassesPage = (): ReactElement => {
   const navigate = useNavigate();
@@ -255,7 +251,11 @@ const ClassesPage = (): ReactElement => {
             <Stack gap={2}>
               <Progress.Root value={enrolled} max={Math.max(capacity, 1)}>
                 <Progress.Track bg="gray.100">
-                  <Progress.Range style={occupancyGradientStyle} />
+                  <Progress.Range
+                    style={{
+                      background: getOccupancyColor(occupancy),
+                    }}
+                  />
                 </Progress.Track>
               </Progress.Root>
               <HStack justify="space-between">

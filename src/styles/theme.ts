@@ -21,7 +21,47 @@ const tokens = defineTokens({
       800: { value: '#0d47a1' },
       900: { value: '#0b3c84' },
     },
+
+    red: {
+      50: { value: '#ffe5e5' },
+      100: { value: '#ffbaba' },
+      200: { value: '#ff8f8f' },
+      300: { value: '#ff6464' },
+      400: { value: '#ff3a3a' },
+      500: { value: '#e51f1f' },
+      600: { value: '#c40c0c' },
+      700: { value: '#9d0606' },
+      800: { value: '#780303' },
+      900: { value: '#530101' },
+    },
+
+    yellow: {
+      50: { value: '#fffde6' },
+      100: { value: '#fff7b8' },
+      200: { value: '#ffef8a' },
+      300: { value: '#ffe75c' },
+      400: { value: '#ffdb2e' },
+      500: { value: '#ffd000' },
+      600: { value: '#d1aa00' },
+      700: { value: '#a38500' },
+      800: { value: '#756000' },
+      900: { value: '#473c00' },
+    },
+
+    green: {
+      50: { value: '#e6f9ed' },
+      100: { value: '#b8eccd' },
+      200: { value: '#8bdcae' },
+      300: { value: '#5fcb8e' },
+      400: { value: '#33b96f' },
+      500: { value: '#1f9f56' },
+      600: { value: '#177d44' },
+      700: { value: '#105c33' },
+      800: { value: '#083b21' },
+      900: { value: '#001a10' },
+    },
   },
+
   fonts: {
     heading: {
       value:
