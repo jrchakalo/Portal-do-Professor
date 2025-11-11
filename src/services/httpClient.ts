@@ -62,6 +62,7 @@ const createHttpClient = (): AxiosInstance => {
 
   enableMockAdapter(instance);
 
+  // Anexa o access token vigente em cada requisição simulando o comportamento de produção
   instance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     const stored = readStoredSession();
     if (stored?.accessToken) {
@@ -85,6 +86,7 @@ const createHttpClient = (): AxiosInstance => {
       }
 
       try {
+        // Tenta renovar silenciosamente a sessão e repetir a chamada original
         const refreshResponse = await instance.post<AuthSession>(
           '/auth/refresh',
           {
