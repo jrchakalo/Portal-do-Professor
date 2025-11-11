@@ -1,4 +1,4 @@
-import { useState, type ReactElement, type ReactNode } from 'react';
+import { useMemo, useState, type ReactElement, type ReactNode } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 import {
@@ -43,23 +43,29 @@ const navItems: NavItem[] = [
   { label: 'Avaliações', to: '/avaliacoes', icon: FiCheckSquare },
 ];
 
+const SIDEBAR_WIDTH = '17rem';
+
 const Sidebar = ({ onNavigate }: { onNavigate?: () => void }): ReactElement => {
   const location = useLocation();
 
   return (
     <VStack
       as="nav"
-      gap={4}
+      gap={6}
       align="stretch"
       px={6}
       py={8}
-      w="64"
-      bg="white"
-      borderRightWidth="1px"
-      borderColor="gray.100"
-      _dark={{ bg: 'gray.900', borderColor: 'gray.700' }}
+      w={SIDEBAR_WIDTH}
+      bg="gray.900"
+      color="gray.200"
+      boxShadow="lg"
+      minH="100vh"
+      borderTopRightRadius="3xl"
+      borderBottomRightRadius="3xl"
+      position="relative"
+      zIndex={2}
     >
-      <chakra.h1 fontSize="xl" fontWeight="bold">
+      <chakra.h1 fontSize="xl" fontWeight="bold" color="white">
         Portal do Professor
       </chakra.h1>
       <Stack as="ul" listStyleType="none" m={0} p={0} gap={1}>
@@ -87,18 +93,9 @@ const Sidebar = ({ onNavigate }: { onNavigate?: () => void }): ReactElement => {
                   py={2}
                   borderRadius="lg"
                   fontWeight="medium"
-                  color={isActive ? 'white' : 'fg.muted'}
+                  color={isActive ? 'white' : 'gray.200'}
                   bg={isActive ? 'brand.500' : 'transparent'}
-                  _hover={
-                    isActive
-                      ? { bg: 'brand.600', color: 'white' }
-                      : { bg: 'gray.100', color: 'fg.default' }
-                  }
-                  _dark={
-                    isActive
-                      ? { bg: 'brand.400', color: 'gray.900' }
-                      : { color: 'fg.muted', _hover: { bg: 'gray.800', color: 'fg.default' } }
-                  }
+                  _hover={{ bg: isActive ? 'brand.500' : 'gray.700', color: 'white' }}
                 >
                   <chakra.span fontSize="lg">
                     <item.icon />
@@ -117,6 +114,37 @@ const Sidebar = ({ onNavigate }: { onNavigate?: () => void }): ReactElement => {
 export const MainLayout = ({ title, actions, children }: MainLayoutProps): ReactElement => {
   const { user, logout } = useAuth();
   const [isMobileNavOpen, setMobileNavOpen] = useState(false);
+  const location = useLocation();
+
+  const resolvedTitle = useMemo(() => {
+    if (title) {
+      return title;
+    }
+
+    const path = location.pathname;
+
+    if (path.startsWith('/dashboard')) {
+      return 'Visão Geral';
+    }
+
+    if (path.startsWith('/alunos')) {
+      return 'Gestão de Alunos';
+    }
+
+    if (path.startsWith('/turmas') && path.includes('/avaliacoes')) {
+      return 'Configurar Avaliações';
+    }
+
+    if (path.startsWith('/turmas')) {
+      return 'Gestão de Turmas';
+    }
+
+    if (path.startsWith('/avaliacoes')) {
+      return 'Avaliações';
+    }
+
+    return 'Portal do Professor';
+  }, [location.pathname, title]);
 
   const handleOpenMobileNav = (): void => {
     setMobileNavOpen(true);
@@ -127,8 +155,12 @@ export const MainLayout = ({ title, actions, children }: MainLayoutProps): React
   };
 
   return (
-    <Flex minH="100vh">
-      <Box display={{ base: 'none', lg: 'block' }} flexShrink={0}>
+    <Flex
+      minH="100vh"
+      bgGradient="linear(to-br, brand.50, transparent)"
+      backdropFilter="blur(6px)"
+    >
+      <Box display={{ base: 'none', lg: 'block' }} flexShrink={0} w={SIDEBAR_WIDTH}>
         <Sidebar />
       </Box>
 
@@ -137,24 +169,42 @@ export const MainLayout = ({ title, actions, children }: MainLayoutProps): React
           as="header"
           align="center"
           justify="space-between"
-          px={{ base: 4, md: 8 }}
+          px={{ base: 4, md: 10 }}
           py={4}
-          borderBottomWidth="1px"
-          borderColor="gray.100"
-          bg="white"
-          _dark={{ bg: 'gray.800', borderColor: 'gray.700' }}
+          position="relative"
+          isolation="isolate"
+          zIndex={0}
+          _before={{
+            content: '""',
+            position: 'absolute',
+            insetY: 0,
+            left: { base: 0, lg: `calc(-1 * ${SIDEBAR_WIDTH})` },
+            width: { base: '100%', lg: `calc(100% + ${SIDEBAR_WIDTH})` },
+            bg: 'white',
+            borderBottomWidth: '1px',
+            borderColor: 'gray.100',
+            boxShadow: 'sm',
+            zIndex: -1,
+          }}
+          _dark={{
+            _before: {
+              bg: 'gray.800',
+              borderColor: 'gray.700',
+            },
+          }}
         >
           <HStack gap={4}>
             <IconButton
               aria-label="Abrir menu"
-              variant="ghost"
+              variant="solid"
+              colorPalette="brand"
               display={{ base: 'inline-flex', lg: 'none' }}
               onClick={handleOpenMobileNav}
             >
               <FiMenu />
             </IconButton>
-            <Text fontSize="lg" fontWeight="semibold">
-              {title ?? 'Painel'}
+            <Text fontSize="lg" fontWeight="semibold" color="fg.default">
+              {resolvedTitle}
             </Text>
           </HStack>
 
@@ -166,29 +216,39 @@ export const MainLayout = ({ title, actions, children }: MainLayoutProps): React
                 {user?.email}
               </Text>
             </VStack>
-            <IconButton aria-label="Encerrar sessão" variant="outline" onClick={() => void logout()}>
+            <IconButton
+              aria-label="Encerrar sessão"
+              variant="solid"
+              colorPalette="brand"
+              onClick={() => void logout()}
+            >
               <FiLogOut />
             </IconButton>
           </HStack>
         </Flex>
 
-        <Box
-          as="main"
-          flex="1"
-          px={{ base: 4, md: 8 }}
-          py={{ base: 6, md: 10 }}
-          bg="gray.50"
-          _dark={{ bg: 'gray.900' }}
-        >
-          {children ?? <Outlet />}
+        <Box as="main" flex="1" px={{ base: 4, md: 10 }} py={{ base: 6, md: 10 }}>
+          <Box
+            maxW="1200px"
+            mx="auto"
+            bg="bg.surface"
+            borderRadius="2xl"
+            boxShadow="xl"
+            px={{ base: 4, md: 10 }}
+            py={{ base: 6, md: 10 }}
+            borderWidth="1px"
+            borderColor="gray.100"
+          >
+            {children ?? <Outlet />}
+          </Box>
         </Box>
       </Flex>
 
       <Drawer.Root open={isMobileNavOpen} onOpenChange={handleMobileNavChange} placement="start">
         <Drawer.Backdrop />
         <Drawer.Positioner>
-          <Drawer.Content maxW="xs" p={0} bg="white" _dark={{ bg: 'gray.900' }}>
-            <Drawer.CloseTrigger position="absolute" top={2} right={2} />
+          <Drawer.Content maxW="xs" p={0} bg="gray.900" color="white">
+            <Drawer.CloseTrigger position="absolute" top={2} right={2} color="whiteAlpha.900" />
             <Sidebar onNavigate={() => setMobileNavOpen(false)} />
           </Drawer.Content>
         </Drawer.Positioner>

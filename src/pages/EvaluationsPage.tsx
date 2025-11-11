@@ -41,6 +41,7 @@ const EvaluationsPage = (): ReactElement => {
   const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [formResetKey, setFormResetKey] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (!successMessage) {
@@ -144,12 +145,16 @@ const EvaluationsPage = (): ReactElement => {
 
   const handleRefresh = useCallback(async (): Promise<void> => {
     resetError();
+    setIsRefreshing(true);
     try {
       await refresh();
+      setSuccessMessage('Dados atualizados com sucesso.');
+      setFormResetKey((key) => key + 1);
     } catch {
-      // feedback exibido via alerta
+      setSuccessMessage(null);
+    } finally {
+      setIsRefreshing(false);
     }
-    setSuccessMessage(null);
   }, [refresh, resetError]);
 
   const handleSubmitCriteria = useCallback(
@@ -189,9 +194,11 @@ const EvaluationsPage = (): ReactElement => {
         <HStack gap={3} align="center">
           <Button
             variant="outline"
+            colorPalette="brand"
             gap={2}
+            loading={isRefreshing || isMutating || isSaving}
             onClick={() => void handleRefresh()}
-            disabled={isLoading || isMutating || isSaving}
+            disabled={isRefreshing || isLoading || isMutating || isSaving}
           >
             <FiRefreshCw />
             <Text as="span">Atualizar</Text>

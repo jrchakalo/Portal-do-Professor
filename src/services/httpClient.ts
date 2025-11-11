@@ -2,53 +2,55 @@ import axios, { AxiosError } from 'axios';
 
 import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
-import type { AuthSession } from '../types';
+import type { AuthSession, User } from '../types';
 import { enableMockAdapter } from './mockAdapter';
 
 const MOCK_API_BASE_URL = '/api';
 
-const TOKEN_STORAGE_KEY = 'portal-professor.tokens';
+const SESSION_STORAGE_KEY = 'portal-professor.session';
 
-interface StoredTokens {
+interface StoredSession {
   accessToken: string;
   refreshToken?: string;
+  user?: User;
 }
 
-const readTokens = (): StoredTokens | null => {
+const readStoredSession = (): StoredSession | null => {
   try {
-    const raw = window.localStorage.getItem(TOKEN_STORAGE_KEY);
+    const raw = window.localStorage.getItem(SESSION_STORAGE_KEY);
     if (!raw) {
       return null;
     }
-    return JSON.parse(raw) as StoredTokens;
+    return JSON.parse(raw) as StoredSession;
   } catch (error) {
     console.warn('Failed to read tokens from storage', error);
     return null;
   }
 };
 
-const persistTokens = (tokens: StoredTokens | null): void => {
+const persistStoredSession = (session: StoredSession | null): void => {
   try {
-    if (!tokens) {
-      window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+    if (!session) {
+      window.localStorage.removeItem(SESSION_STORAGE_KEY);
       return;
     }
-    window.localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(tokens));
+    window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
   } catch (error) {
     console.warn('Failed to persist tokens to storage', error);
   }
 };
 
 export const clearPersistedSession = (): void => {
-  persistTokens(null);
+  persistStoredSession(null);
 };
 
-export const readPersistedSession = (): StoredTokens | null => readTokens();
+export const readPersistedSession = (): StoredSession | null => readStoredSession();
 
 export const persistAuthSession = (session: AuthSession): void => {
-  persistTokens({
+  persistStoredSession({
     accessToken: session.tokens.accessToken,
     refreshToken: session.tokens.refreshToken,
+    user: session.user,
   });
 };
 
@@ -61,10 +63,10 @@ const createHttpClient = (): AxiosInstance => {
   enableMockAdapter(instance);
 
   instance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-    const tokens = readTokens();
-    if (tokens?.accessToken) {
+    const stored = readStoredSession();
+    if (stored?.accessToken) {
       config.headers = config.headers ?? {};
-      config.headers.Authorization = `Bearer ${tokens.accessToken}`;
+      config.headers.Authorization = `Bearer ${stored.accessToken}`;
     }
     return config;
   });
@@ -76,8 +78,8 @@ const createHttpClient = (): AxiosInstance => {
         return Promise.reject(error);
       }
 
-      const tokens = readTokens();
-      if (!tokens?.refreshToken) {
+      const stored = readStoredSession();
+      if (!stored?.refreshToken) {
         clearPersistedSession();
         return Promise.reject(error);
       }
@@ -86,7 +88,7 @@ const createHttpClient = (): AxiosInstance => {
         const refreshResponse = await instance.post<AuthSession>(
           '/auth/refresh',
           {
-            refreshToken: tokens.refreshToken,
+            refreshToken: stored.refreshToken,
           },
           {
             headers: { Authorization: undefined },

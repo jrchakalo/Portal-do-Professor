@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { mockServer } from '../services/mockServer';
 import type { ClassRoom, EvaluationConfig, Student, UpcomingEvaluation } from '../types';
@@ -66,6 +66,11 @@ interface DashboardOverviewState {
   evaluationConfigs: EvaluationConfigSummary[];
   studentStatus: StudentStatusSummary;
   capacityAlerts: CapacityAlert[];
+}
+
+interface DashboardOverviewReturn extends DashboardOverviewState {
+  isLoading: boolean;
+  refresh: () => void;
 }
 
 const createInitialMetrics = (): OverviewMetrics => ({
@@ -210,13 +215,17 @@ const buildCapacityAlerts = (summaries: ClassSummary[]): CapacityAlert[] => {
     } satisfies CapacityAlert));
 };
 
-export const useDashboardOverview = (): DashboardOverviewState & { isLoading: boolean } => {
+export const useDashboardOverview = (): DashboardOverviewReturn => {
   const [snapshot, setSnapshot] = useState<MockSnapshot | null>(null);
 
-  useEffect(() => {
+  const loadSnapshot = useCallback(() => {
     const nextSnapshot = mockServer.snapshot();
     setSnapshot(nextSnapshot);
   }, []);
+
+  useEffect(() => {
+    loadSnapshot();
+  }, [loadSnapshot]);
 
   const state = useMemo(() => {
     if (!snapshot) {
@@ -262,8 +271,12 @@ export const useDashboardOverview = (): DashboardOverviewState & { isLoading: bo
     } satisfies DashboardOverviewState;
   }, [snapshot]);
 
-  return {
-    ...state,
-    isLoading: snapshot === null,
-  };
+  return useMemo(
+    () => ({
+      ...state,
+      isLoading: snapshot === null,
+      refresh: loadSnapshot,
+    }),
+    [loadSnapshot, snapshot, state],
+  );
 };

@@ -1,4 +1,4 @@
-import { Alert, Dialog, Stack } from '@chakra-ui/react';
+import { Alert, Dialog, Stack, Portal } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 
 import type { ClassRoom } from '../../types';
@@ -49,14 +49,39 @@ export const StudentFormDialog = ({
   };
 
   return (
-    <Dialog.Root open={open} onOpenChange={handleOpenChange} closeOnInteractOutside={!isSubmitting}>
-      <Dialog.Backdrop />
-      <Dialog.Positioner>
-        <Dialog.Content maxW="lg">
+    <Portal>
+      <Dialog.Root
+        open={open}
+        onOpenChange={handleOpenChange}
+        closeOnInteractOutside={!isSubmitting}
+        modal={true} 
+      lazyMount
+    >
+      <Dialog.Backdrop
+        position="fixed"
+        inset={0}
+        bg="blackAlpha.700"
+        backdropFilter="blur(14px)"
+        zIndex="overlay"
+      />
+      <Dialog.Positioner
+        position="fixed"
+        inset={0}
+        display="grid"
+        placeItems="center"
+        minH="100vh"
+        px={{ base: 4, md: 0 }}
+        py={{ base: 6, md: 0 }}
+        overflowY="auto"
+        zIndex="overlay"
+      >
+        <Dialog.Content maxW="lg" borderRadius="2xl" boxShadow="2xl" my={{ base: 8, md: 0 }}>
           <Dialog.CloseTrigger disabled={isSubmitting} />
           <Dialog.Header>
-            <Dialog.Title>{dialogTitle[mode]}</Dialog.Title>
-            <Dialog.Description>{dialogDescription[mode]}</Dialog.Description>
+            <Stack gap={1}>
+              <Dialog.Title>{dialogTitle[mode]}</Dialog.Title>
+              <Dialog.Description color="fg.muted">{dialogDescription[mode]}</Dialog.Description>
+            </Stack>
           </Dialog.Header>
           <Dialog.Body>
             <Stack gap={4}>
@@ -80,5 +105,6 @@ export const StudentFormDialog = ({
         </Dialog.Content>
       </Dialog.Positioner>
     </Dialog.Root>
+    </Portal>
   );
 };

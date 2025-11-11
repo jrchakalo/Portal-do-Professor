@@ -224,6 +224,26 @@ const persistSession = (record: SessionRecord): AuthSession => {
 	};
 };
 
+const rehydrateSessionRecord = (payload: { accessToken: string; refreshToken?: string; userId: string }): void => {
+	if (!payload.accessToken) {
+		return;
+	}
+
+	const userExists = database.users.some((candidate) => candidate.id === payload.userId);
+	if (!userExists) {
+		return;
+	}
+
+	const record: SessionRecord = {
+		accessToken: payload.accessToken,
+		refreshToken: payload.refreshToken ?? generateId('refresh-token'),
+		userId: payload.userId,
+		expiresAt: Date.now() + ACCESS_TOKEN_TTL,
+	};
+
+	database.sessions.set(record.accessToken, record);
+};
+
 const invalidateToken = (token: string): void => {
 	database.sessions.delete(token);
 };
@@ -510,5 +530,9 @@ export const mockServer = {
 
 		const [removed] = database.students.splice(index, 1);
 		detachStudentFromClass(removed.classId, removed.id);
+	},
+
+	rehydrateSession(payload: { accessToken: string; refreshToken?: string; userId: string }): void {
+		rehydrateSessionRecord(payload);
 	},
 };

@@ -8,6 +8,12 @@ interface StudentStatusCardProps {
   isLoading: boolean;
 }
 
+const getEngagementColor = (percent: number) => {
+  if (percent < 40) return "#ef4444"; // Vermelho (baixo engajamento)
+  if (percent < 70) return "#facc15"; // Amarelo (mediano)
+  return "#16a34a"; // Verde (bom)
+};
+
 export const StudentStatusCard = ({ status, isLoading }: StudentStatusCardProps): ReactElement => {
   const activePercent = status.total > 0 ? Math.round((status.active / status.total) * 100) : 0;
 
@@ -28,8 +34,8 @@ export const StudentStatusCard = ({ status, isLoading }: StudentStatusCardProps)
               <Text color="fg.muted">{status.active}</Text>
             </Flex>
             <Progress.Root value={activePercent} max={100}>
-              <Progress.Track>
-                <Progress.Range />
+              <Progress.Track bg="gray.100" borderRadius="full" overflow="hidden">
+                <Progress.Range bg={getEngagementColor(activePercent)} />
               </Progress.Track>
             </Progress.Root>
             <Flex justify="space-between" fontSize="sm" color="fg.muted">

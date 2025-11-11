@@ -1,4 +1,4 @@
-import { Button, Dialog, Stack, Text } from '@chakra-ui/react';
+import { Button, Dialog, Stack, Text, Portal } from '@chakra-ui/react';
 import type { ReactElement } from 'react';
 
 interface DeleteClassDialogProps {
@@ -23,10 +23,33 @@ export const DeleteClassDialog = ({
   };
 
   return (
-    <Dialog.Root open={open} onOpenChange={handleOpenChange} closeOnInteractOutside={!isSubmitting}>
-      <Dialog.Backdrop />
-      <Dialog.Positioner>
-        <Dialog.Content maxW="sm">
+    <Portal>
+      <Dialog.Root
+        open={open}
+        onOpenChange={handleOpenChange}
+        closeOnInteractOutside={!isSubmitting}
+        modal={true} 
+      lazyMount
+    >
+      <Dialog.Backdrop
+        position="fixed"
+        inset={0}
+        bg="blackAlpha.700"
+        backdropFilter="blur(14px)"
+        zIndex="overlay"
+      />
+      <Dialog.Positioner
+        position="fixed"
+        inset={0}
+        display="grid"
+        placeItems="center"
+        minH="100vh"
+        px={{ base: 4, md: 0 }}
+        py={{ base: 6, md: 0 }}
+        overflowY="auto"
+        zIndex="overlay"
+      >
+        <Dialog.Content maxW="sm" my={{ base: 8, md: 0 }}>
           <Dialog.CloseTrigger disabled={isSubmitting} />
           <Dialog.Header>
             <Dialog.Title>Remover turma</Dialog.Title>
@@ -56,5 +79,6 @@ export const DeleteClassDialog = ({
         </Dialog.Content>
       </Dialog.Positioner>
     </Dialog.Root>
+    </Portal>
   );
 };

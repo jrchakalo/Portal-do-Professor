@@ -18,7 +18,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import type { ChangeEvent, ReactElement } from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FiCheckSquare, FiEdit2, FiPlus, FiRefreshCw, FiTrash } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,6 +27,7 @@ import { DeleteClassDialog } from '../components/classes/DeleteClassDialog';
 import type { ClassFormValues } from '../components/classes/ClassForm';
 import { OverviewStatCard } from '../components/dashboard/OverviewStatCard';
 import { DataTable } from '../components/table/DataTable';
+import { getOccupancyColor } from '../utils/progressColors';
 import { useClasses } from '../hooks/useClasses';
 
 type OccupancyFilter = 'all' | 'available' | 'full';
@@ -58,6 +59,14 @@ const ClassesPage = (): ReactElement => {
   const [classToDelete, setClassToDelete] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setLastSyncedAt(new Date());
+    }
+  }, [isLoading]);
 
   const editedClass = useMemo(() => classes.find((classRoom) => classRoom.id === classToEdit) ?? null, [classes, classToEdit]);
   const deletedClass = useMemo(() => classes.find((classRoom) => classRoom.id === classToDelete) ?? null, [classes, classToDelete]);
@@ -139,10 +148,14 @@ const ClassesPage = (): ReactElement => {
 
   const handleRefresh = useCallback(async (): Promise<void> => {
     resetError();
+    setIsRefreshing(true);
     try {
       await refresh();
+      setLastSyncedAt(new Date());
     } catch {
       // feedback visual exibido pelo alerta de erro
+    } finally {
+      setIsRefreshing(false);
     }
   }, [refresh, resetError]);
 
@@ -155,6 +168,7 @@ const ClassesPage = (): ReactElement => {
         } else if (classToEdit) {
           await updateClass(classToEdit, values);
         }
+        setLastSyncedAt(new Date());
         handleCloseForm();
       } catch {
         // erro exibido via alerta
@@ -173,6 +187,7 @@ const ClassesPage = (): ReactElement => {
     setIsDeleting(true);
     try {
       await deleteClass(classToDelete);
+      setLastSyncedAt(new Date());
       handleCloseDelete();
     } catch {
       // erro exibido via alerta
@@ -210,7 +225,7 @@ const ClassesPage = (): ReactElement => {
       const statusLabel = statusIsFull ? 'Lotada' : 'Com vagas';
       const statusPalette = statusIsFull ? 'red' : 'green';
       const occupancy = capacity > 0 ? Math.min((enrolled / capacity) * 100, 100) : 0;
-      const updatedAt = formatter.format(new Date(classRoom.updatedAt));
+  const updatedAt = formatter.format(new Date(classRoom.updatedAt));
 
       return (
         <TableRow key={classRoom.id}>
@@ -234,9 +249,13 @@ const ClassesPage = (): ReactElement => {
           </TableCell>
           <TableCell>
             <Stack gap={2}>
-              <Progress.Root value={enrolled} max={Math.max(capacity, 1)} colorPalette={statusIsFull ? 'red' : 'brand'}>
-                <Progress.Track>
-                  <Progress.Range />
+              <Progress.Root value={enrolled} max={Math.max(capacity, 1)}>
+                <Progress.Track bg="gray.100">
+                  <Progress.Range
+                    style={{
+                      background: getOccupancyColor(occupancy),
+                    }}
+                  />
                 </Progress.Track>
               </Progress.Root>
               <HStack justify="space-between">
@@ -250,28 +269,35 @@ const ClassesPage = (): ReactElement => {
             </Stack>
           </TableCell>
           <TableCell textAlign="right">
-            <HStack gap={2} justify="flex-end">
-              <IconButton
-                aria-label="Configurar avaliações"
-                size="sm"
-                variant="ghost"
-                onClick={() => handleOpenEvaluations(classRoom.id)}
-              >
-                <FiCheckSquare />
-              </IconButton>
-              <IconButton aria-label="Editar turma" size="sm" variant="ghost" onClick={() => handleOpenEdit(classRoom.id)}>
-                <FiEdit2 />
-              </IconButton>
-              <IconButton
-                aria-label="Remover turma"
-                size="sm"
-                variant="ghost"
-                colorPalette="red"
-                onClick={() => handleOpenDelete(classRoom.id)}
-              >
-                <FiTrash />
-              </IconButton>
-            </HStack>
+                <HStack gap={2} justify="flex-end">
+                  <IconButton
+                    aria-label="Configurar avaliações"
+                    size="sm"
+                    variant="subtle"
+                    colorPalette="brand"
+                    onClick={() => handleOpenEvaluations(classRoom.id)}
+                  >
+                    <FiCheckSquare />
+                  </IconButton>
+                  <IconButton
+                    aria-label="Editar turma"
+                    size="sm"
+                    variant="subtle"
+                    colorPalette="brand"
+                    onClick={() => handleOpenEdit(classRoom.id)}
+                  >
+                    <FiEdit2 />
+                  </IconButton>
+                  <IconButton
+                    aria-label="Remover turma"
+                    size="sm"
+                    variant="subtle"
+                    colorPalette="red"
+                    onClick={() => handleOpenDelete(classRoom.id)}
+                  >
+                    <FiTrash />
+                  </IconButton>
+                </HStack>
           </TableCell>
         </TableRow>
       );
@@ -309,21 +335,34 @@ const ClassesPage = (): ReactElement => {
           <Heading size="lg">Turmas</Heading>
           <Text color="fg.muted">Organize as turmas, acompanhe a ocupação e mantenha as vagas atualizadas.</Text>
         </Stack>
-        <HStack gap={3} align="center">
-          <Button
-            variant="outline"
-            gap={2}
-            onClick={() => void handleRefresh()}
-            disabled={isLoading || isSaving || isDeleting}
-          >
-            <FiRefreshCw />
-            <Text as="span">Atualizar</Text>
-          </Button>
-          <Button colorPalette="brand" gap={2} onClick={handleOpenCreate} disabled={isSaving || isDeleting}>
-            <FiPlus />
-            <Text as="span">Nova turma</Text>
-          </Button>
-        </HStack>
+          <HStack gap={3} align="center">
+            <Button
+              variant="outline"
+              colorPalette="brand"
+              gap={2}
+              loading={isRefreshing}
+              onClick={() => void handleRefresh()}
+              disabled={isRefreshing || isLoading || isSaving || isDeleting}
+            >
+              <FiRefreshCw />
+              <Text as="span">Atualizar</Text>
+            </Button>
+            <Button
+              variant="solid"
+              colorPalette="brand"
+              gap={2}
+              onClick={handleOpenCreate}
+              disabled={isSaving || isDeleting}
+            >
+              <FiPlus />
+              <Text as="span">Nova turma</Text>
+            </Button>
+          </HStack>
+        {lastSyncedAt ? (
+          <Text fontSize="sm" color="fg.muted">
+            Última atualização às {formatter.format(lastSyncedAt)}
+          </Text>
+        ) : null}
       </Stack>
 
       <SimpleGrid columns={{ base: 1, md: 2, xl: 4 }} gap={4}>

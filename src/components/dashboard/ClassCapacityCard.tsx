@@ -8,6 +8,12 @@ interface ClassCapacityCardProps {
   isLoading: boolean;
 }
 
+const getOccupancyColor = (percent: number) => {
+  if (percent < 50) return "#3b82f6"; // Azul
+  if (percent < 80) return "#facc15"; // Amarelo
+  return "#ef4444"; // Vermelho
+};
+
 export const ClassCapacityCard = ({ classes, isLoading }: ClassCapacityCardProps): ReactElement => {
   return (
     <Card.Root>
@@ -36,8 +42,8 @@ export const ClassCapacityCard = ({ classes, isLoading }: ClassCapacityCardProps
                   </Text>
                 </Flex>
                 <Progress.Root value={classSummary.occupancyPercent} max={100}>
-                  <Progress.Track>
-                    <Progress.Range />
+                  <Progress.Track bg="gray.100" borderRadius="full" overflow="hidden">
+                    <Progress.Range bg={getOccupancyColor(classSummary.occupancyPercent)} />
                   </Progress.Track>
                 </Progress.Root>
                 <Text fontSize="xs" color="fg.muted" mt={1}>
