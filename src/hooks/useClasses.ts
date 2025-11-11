@@ -45,6 +45,7 @@ const toClassesError = (error: unknown): ClassesError => {
   };
 };
 
+// Consolida estatísticas globais das turmas para alimentar cards e filtros
 const createSummary = (classes: ClassRoom[]): ClassesSummary => {
   const totalClasses = classes.length;
   let filledClasses = 0;
@@ -75,6 +76,7 @@ const createSummary = (classes: ClassRoom[]): ClassesSummary => {
   };
 };
 
+// Hook centralizador de estado e efeitos relacionados às turmas
 export const useClasses = (): UseClassesState => {
   const [classes, setClasses] = useState<ClassRoom[]>([]);
   const [isLoading, setLoading] = useState(true);
@@ -106,7 +108,7 @@ export const useClasses = (): UseClassesState => {
       }
     };
 
-    void load();
+  void load();
 
     return () => {
       isMounted.current = false;
@@ -117,6 +119,7 @@ export const useClasses = (): UseClassesState => {
     setError(null);
   }, []);
 
+  // Reaproveita padrão de tratamento para create/update/delete
   const wrapMutation = useCallback(
     async <T>(operation: () => Promise<T>): Promise<T> => {
       setMutating(true);

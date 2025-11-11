@@ -73,6 +73,7 @@ interface DashboardOverviewReturn extends DashboardOverviewState {
   refresh: () => void;
 }
 
+// Mantém valores neutros enquanto o snapshot ainda não foi carregado
 const createInitialMetrics = (): OverviewMetrics => ({
   students: 0,
   classes: 0,
@@ -95,6 +96,7 @@ type MockSnapshot = ReturnType<typeof mockServer.snapshot>;
 type ClassDictionary = Record<string, ClassRoom>;
 type StudentDictionary = Record<string, Student[]>;
 
+// Evita buscas lineares repetidas ao preparar os dados do dashboard
 const buildClassDictionary = (classes: ClassRoom[]): ClassDictionary => {
   return classes.reduce<ClassDictionary>((acc, classRoom) => {
     acc[classRoom.id] = classRoom;
@@ -215,9 +217,11 @@ const buildCapacityAlerts = (summaries: ClassSummary[]): CapacityAlert[] => {
     } satisfies CapacityAlert));
 };
 
+// Hook que abastece o dashboard com métricas derivadas do estado mockado
 export const useDashboardOverview = (): DashboardOverviewReturn => {
   const [snapshot, setSnapshot] = useState<MockSnapshot | null>(null);
 
+  // Busca um snapshot completo do mock server para derivar todos os cards do dashboard
   const loadSnapshot = useCallback(() => {
     const nextSnapshot = mockServer.snapshot();
     setSnapshot(nextSnapshot);
@@ -235,11 +239,11 @@ export const useDashboardOverview = (): DashboardOverviewReturn => {
     const classesById = buildClassDictionary(snapshot.classes);
     const studentsByClass = buildStudentDictionary(snapshot.students);
     const evaluations = buildEvaluations(snapshot.upcomingEvaluations, classesById);
-  const classSummaries = buildClassSummaries(snapshot.classes, studentsByClass);
-  const evaluationConfigs = buildEvaluationConfigSummaries(snapshot.evaluationConfigs, classesById);
-  const studentStatus = buildStudentStatusSummary(snapshot.students);
-  const capacityAlerts = buildCapacityAlerts(classSummaries);
-  const activeStudentsCount = studentStatus.active;
+    const classSummaries = buildClassSummaries(snapshot.classes, studentsByClass);
+    const evaluationConfigs = buildEvaluationConfigSummaries(snapshot.evaluationConfigs, classesById);
+    const studentStatus = buildStudentStatusSummary(snapshot.students);
+    const capacityAlerts = buildCapacityAlerts(classSummaries);
+    const activeStudentsCount = studentStatus.active;
     const classesWithUpcomingEvaluation = new Set(evaluations.map((evaluation) => evaluation.classId));
     const pendingEvaluations = snapshot.classes
       .filter((classRoom) => !classesWithUpcomingEvaluation.has(classRoom.id))

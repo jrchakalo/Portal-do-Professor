@@ -37,6 +37,7 @@ const toStudentsError = (error: unknown): StudentsError => {
   };
 };
 
+// Hook que concentra CRUD de alunos e sincroniza com a lista de turmas para manter formulários e dashboards coerentes
 export const useStudents = (): UseStudentsState => {
   const [students, setStudents] = useState<Student[]>([]);
   const [classes, setClasses] = useState<ClassRoom[]>([]);
@@ -86,6 +87,7 @@ export const useStudents = (): UseStudentsState => {
     setError(null);
   }, []);
 
+  // Reutiliza padrão de mutações para padronizar feedback de loading e mensagens de erro
   const wrapMutation = useCallback(
     async <T>(operation: () => Promise<T>): Promise<T> => {
       setMutating(true);
@@ -134,6 +136,7 @@ export const useStudents = (): UseStudentsState => {
         const created = await studentService.create(input);
         setStudents((prev) => [...prev, created]);
         if (created.classId) {
+          // Recarrega turmas quando o aluno tem vínculo para evitar dados inconsistentes em dashboards
           void refresh().catch(() => undefined);
         }
         return created;
@@ -146,6 +149,7 @@ export const useStudents = (): UseStudentsState => {
         const updated = await studentService.update(id, changes);
         setStudents((prev) => prev.map((student) => (student.id === id ? updated : student)));
         if ('classId' in changes) {
+          // Atualiza contagens de turmas quando o vínculo do aluno muda
           void refresh().catch(() => undefined);
         }
         return updated;
